@@ -6,6 +6,7 @@ from langdetect import detect
 from textblob import TextBlob
 import time
 import re
+import os  # Added for file existence check
 
 # Replace these with your own Reddit API credentials
 client_id = 'zwNVQTjvLRlJBm4IytY5nA'
@@ -35,6 +36,39 @@ timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 # Initialize lists to store post data
 posts_data = []
 processed_post_ids = set()  # To avoid duplicates across queries
+
+# File to track collected IDs
+collected_ids_file = "collected_ids.json"  # Added: file to store previously collected IDs
+
+# Load previously collected IDs from file
+def load_collected_ids():
+    """Load previously collected post and comment IDs from file"""
+    if os.path.exists(collected_ids_file):
+        try:
+            with open(collected_ids_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return set(data.get('post_ids', [])), set(data.get('comment_ids', []))
+        except (json.JSONDecodeError, KeyError):
+            print(f"Warning: Could not load {collected_ids_file}, starting fresh")
+            return set(), set()
+    else:
+        print(f"{collected_ids_file} not found, starting fresh")
+        return set(), set()
+
+# Save collected IDs to file
+def save_collected_ids(post_ids, comment_ids):
+    """Save collected post and comment IDs to file"""
+    data = {
+        'post_ids': list(post_ids),
+        'comment_ids': list(comment_ids),
+        'last_updated': datetime.now().isoformat()
+    }
+    with open(collected_ids_file, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+# Load existing collected IDs at startup
+existing_post_ids, existing_comment_ids = load_collected_ids()
+print(f"Loaded {len(existing_post_ids)} previously collected post IDs and {len(existing_comment_ids)} comment IDs")
 
 # News domains for classification
 news_domains = [
@@ -96,6 +130,11 @@ def extract_comments(post, max_comments=10):
         for comment in top_comments:
             try:
                 if hasattr(comment, 'body') and comment.body != '[deleted]':
+                    # Check if comment ID already exists in collected IDs
+                    if comment.id in existing_comment_ids:
+                        print(f"    Skipping already collected comment: {comment.id}")
+                        continue  # Skip already collected comment
+                    
                     comment_text = comment.body if comment.body else ''
                     comment_subjectivity = get_subjectivity(comment_text)
                     
@@ -109,6 +148,8 @@ def extract_comments(post, max_comments=10):
                             'comment_subjectivity': comment_subjectivity
                         }
                         comments_data.append(comment_data)
+                        # Add comment ID to existing set for this session
+                        existing_comment_ids.add(comment.id)
             except Exception as comment_error:
                 continue  # Skip problematic comments
                 
@@ -160,8 +201,14 @@ try:
             
             query_posts_collected = 0
             for post in search_results:
-                # Skip if we've already processed this post
+                # Skip if we've already processed this post in this session
                 if post.id in processed_post_ids:
+                    continue
+                
+                # Check if post ID already exists in collected IDs from previous runs
+                if post.id in existing_post_ids:
+                    print(f"  Skipping already collected post: {post.id}")
+                    processed_post_ids.add(post.id)  # Add to session set to avoid reprocessing
                     continue
                 
                 # Check if post meets filtering criteria
@@ -179,7 +226,7 @@ try:
                     
                     print(f"  Extracting comments for post: {title[:30]}...")
                     
-                    # Extract comments
+                    # Extract comments (already handles comment ID checking internally)
                     comments = extract_comments(post, max_comments_per_post)
                     
                     # Store post data
@@ -202,6 +249,8 @@ try:
                     }
                     posts_data.append(post_data)
                     processed_post_ids.add(post.id)
+                    # Add post ID to existing set for this session
+                    existing_post_ids.add(post.id)
                     query_posts_collected += 1
                     
                     # Print progress (show title, truncated if too long)
@@ -232,6 +281,9 @@ try:
             json.dump(posts_data, f, ensure_ascii=False, indent=2)
         print(f"Posts saved to {json_filename}")
         
+        # Create DataFrame for summary statistics (only if posts_data is not empty)
+        df = pd.DataFrame(posts_data)
+        
         # Print summary statistics
         print(f"\nSummary:")
         print(f"- Total posts collected: {len(posts_data)}")
@@ -248,7 +300,11 @@ try:
             count = len(df[df['search_query'] == query])
             print(f"  '{query}': {count} posts")
     else:
-        print("No posts met the filtering criteria.")
+        print("No new posts met the filtering criteria.")
+
+    # Update collected_ids.json with all IDs (both existing and new)
+    save_collected_ids(existing_post_ids, existing_comment_ids)
+    print(f"Updated {collected_ids_file} with {len(existing_post_ids)} post IDs and {len(existing_comment_ids)} comment IDs")
 
     print("\nDownload complete!")
 
@@ -260,4 +316,8 @@ except Exception as e:
         with open(json_filename, 'w', encoding='utf-8') as f:
             json.dump(posts_data, f, ensure_ascii=False, indent=2)
         print(f"Partial results saved to {json_filename}")
+    
+    # Still update collected IDs even if there was an error
+    save_collected_ids(existing_post_ids, existing_comment_ids)
+    print(f"Updated {collected_ids_file} with current IDs")
         
