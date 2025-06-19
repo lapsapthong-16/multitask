@@ -3,7 +3,9 @@ import json
 import pandas as pd
 from datetime import datetime
 from langdetect import detect
+from textblob import TextBlob
 import time
+import re
 
 # Replace these with your own Reddit API credentials
 client_id = 'zwNVQTjvLRlJBm4IytY5nA'
@@ -21,6 +23,7 @@ reddit = praw.Reddit(
 subreddit_name = 'samsung'
 search_queries = ["Galaxy Note 7", "Note7", "Samsung fire", "Note 7 recall", "#Note7Recall", "#SamsungFire"]
 max_posts_per_query = 100
+max_comments_per_post = 10
 
 # Define time range (August 1, 2016 to December 31, 2016)
 start_date = datetime(2016, 8, 1).timestamp()
@@ -32,6 +35,13 @@ timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 # Initialize lists to store post data
 posts_data = []
 processed_post_ids = set()  # To avoid duplicates across queries
+
+# News domains for classification
+news_domains = [
+    'cnn', 'bbc', 'reuters', 'nytimes', 'washingtonpost', 'theguardian', 
+    'forbes', 'bloomberg', 'techcrunch', 'verge', 'engadget', 'androidpolice',
+    'androidcentral', 'gsmarena', 'phonearena', '9to5google', 'arstechnica'
+]
 
 print(f"Collecting posts from r/{subreddit_name} for multiple queries...")
 print(f"Time range: August 1, 2016 - December 31, 2016")
@@ -45,6 +55,67 @@ def is_english(text):
         return detect(text) == 'en'
     except:
         return False
+
+def get_subjectivity(text):
+    """Get subjectivity score using TextBlob, handle errors gracefully"""
+    try:
+        if not text or len(text.strip()) < 3:
+            return 0.0
+        blob = TextBlob(text)
+        return blob.sentiment.subjectivity
+    except:
+        return 0.0
+
+def classify_post_type(post):
+    """Classify post as 'news' or 'opinion' based on URL and content"""
+    try:
+        # Check if URL contains news domain
+        for domain in news_domains:
+            if domain.lower() in post.url.lower():
+                return "news"
+        
+        # Check if it's a self post (selftext exists and URL is Reddit permalink)
+        if post.selftext and post.selftext.strip() and 'reddit.com' in post.url:
+            return "opinion"
+        
+        # Default classification
+        return "other"
+    except:
+        return "unknown"
+
+def extract_comments(post, max_comments=10):
+    """Extract top-level comments from a post"""
+    comments_data = []
+    try:
+        # Load all comments
+        post.comments.replace_more(limit=0)
+        
+        # Get top-level comments only
+        top_comments = post.comments[:max_comments]
+        
+        for comment in top_comments:
+            try:
+                if hasattr(comment, 'body') and comment.body != '[deleted]':
+                    comment_text = comment.body if comment.body else ''
+                    comment_subjectivity = get_subjectivity(comment_text)
+                    
+                    # Apply subjectivity filter to comments too (optional)
+                    if comment_subjectivity >= 0.4:
+                        comment_data = {
+                            'comment_id': comment.id,
+                            'comment_text': comment_text,
+                            'comment_score': comment.score if hasattr(comment, 'score') else 0,
+                            'comment_author': str(comment.author) if comment.author else '[deleted]',
+                            'comment_subjectivity': comment_subjectivity
+                        }
+                        comments_data.append(comment_data)
+            except Exception as comment_error:
+                continue  # Skip problematic comments
+                
+    except Exception as e:
+        print(f"    Error extracting comments: {e}")
+    
+    return comments_data
 
 def is_valid_post(post):
     """Check if post meets all filtering criteria"""
@@ -67,6 +138,11 @@ def is_valid_post(post):
     combined_text = f"{title} {selftext}".strip()
     if not is_english(combined_text):
         return False, "non_english"
+    
+    # Subjectivity filter
+    subjectivity_score = get_subjectivity(combined_text)
+    if subjectivity_score < 0.4:
+        return False, "low_subjectivity"
     
     return True, "valid"
 
@@ -92,11 +168,25 @@ try:
                 is_valid, reason = is_valid_post(post)
                 
                 if is_valid:
+                    # Get post content for analysis
+                    title = post.title if post.title else ''
+                    selftext = post.selftext if post.selftext else ''
+                    combined_text = f"{title} {selftext}".strip()
+                    
+                    # Get subjectivity and post type
+                    subjectivity_score = get_subjectivity(combined_text)
+                    post_type = classify_post_type(post)
+                    
+                    print(f"  Extracting comments for post: {title[:30]}...")
+                    
+                    # Extract comments
+                    comments = extract_comments(post, max_comments_per_post)
+                    
                     # Store post data
                     post_data = {
                         'id': post.id,
-                        'title': post.title if post.title else '',
-                        'selftext': post.selftext if post.selftext else '',
+                        'title': title,
+                        'selftext': selftext,
                         'author': str(post.author) if post.author else '[deleted]',
                         'created_utc': post.created_utc,
                         'created_date': datetime.fromtimestamp(post.created_utc).strftime('%Y-%m-%d %H:%M:%S'),
@@ -104,18 +194,25 @@ try:
                         'num_comments': post.num_comments,
                         'url': post.url,
                         'subreddit': str(post.subreddit),
-                        'search_query': search_query
+                        'search_query': search_query,
+                        'subjectivity': round(subjectivity_score, 3),
+                        'post_type': post_type,
+                        'extracted_comments': comments,
+                        'num_extracted_comments': len(comments)
                     }
                     posts_data.append(post_data)
                     processed_post_ids.add(post.id)
                     query_posts_collected += 1
                     
                     # Print progress (show title, truncated if too long)
-                    title_preview = post.title[:50] + "..." if len(post.title) > 50 else post.title
-                    print(f"  Collected post {len(posts_data)}: {title_preview}")
+                    title_preview = title[:50] + "..." if len(title) > 50 else title
+                    print(f"  Collected post {len(posts_data)}: {title_preview} (subj: {subjectivity_score:.2f}, type: {post_type}, comments: {len(comments)})")
+                else:
+                    if reason == "low_subjectivity":
+                        print(f"  Skipped post (low subjectivity): {post.title[:30]}...")
                 
                 # Add small delay to be respectful to Reddit's API
-                time.sleep(0.1)
+                time.sleep(0.2)  # Increased delay due to comment extraction
             
             print(f"  Query '{search_query}' yielded {query_posts_collected} valid posts")
             
@@ -127,7 +224,7 @@ try:
 
     if posts_data:
         # Create base filename
-        base_filename = f"reddit_posts_note7_crisis_{timestamp}"
+        base_filename = f"reddit_posts_note7_enhanced_{timestamp}"
         
         # Save as JSON file
         json_filename = f"{base_filename}.json"
@@ -135,17 +232,17 @@ try:
             json.dump(posts_data, f, ensure_ascii=False, indent=2)
         print(f"Posts saved to {json_filename}")
         
-        # Save as CSV file using pandas
-        csv_filename = f"{base_filename}.csv"
-        df = pd.DataFrame(posts_data)
-        df.to_csv(csv_filename, index=False, encoding='utf-8')
-        print(f"Posts saved to {csv_filename}")
-        
         # Print summary statistics
         print(f"\nSummary:")
         print(f"- Total posts collected: {len(posts_data)}")
         print(f"- Date range: {df['created_date'].min()} to {df['created_date'].max()}")
         print(f"- Average score: {df['score'].mean():.1f}")
+        print(f"- Average subjectivity: {df['subjectivity'].mean():.3f}")
+        print(f"- Total comments extracted: {df['num_extracted_comments'].sum()}")
+        print(f"- Post types distribution:")
+        post_type_counts = df['post_type'].value_counts()
+        for post_type, count in post_type_counts.items():
+            print(f"  {post_type}: {count} posts")
         print(f"- Posts by query:")
         for query in search_queries:
             count = len(df[df['search_query'] == query])
@@ -164,11 +261,3 @@ except Exception as e:
             json.dump(posts_data, f, ensure_ascii=False, indent=2)
         print(f"Partial results saved to {json_filename}")
         
-        # Also save partial results as CSV
-        try:
-            csv_filename = f"reddit_posts_partial_{timestamp}.csv"
-            df = pd.DataFrame(posts_data)
-            df.to_csv(csv_filename, index=False, encoding='utf-8')
-            print(f"Partial results saved to {csv_filename}")
-        except Exception as csv_error:
-            print(f"Could not save partial CSV: {csv_error}") 
