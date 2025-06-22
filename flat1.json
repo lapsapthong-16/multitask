@@ -477,7 +477,7 @@
     "type": "post",
     "score": 95,
     "subjectivity": 0.5,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "dbf8k1o",
@@ -485,7 +485,7 @@
     "type": "comment",
     "score": 28,
     "subjectivity": 0.465,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "dbfyq3r",
@@ -493,7 +493,7 @@
     "type": "comment",
     "score": 9,
     "subjectivity": 0.41428571428571426,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "dbg7ajx",
@@ -501,7 +501,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.75,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "dbgcdgl",
@@ -509,7 +509,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.40625,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "dbftpbx",
@@ -517,7 +517,7 @@
     "type": "comment",
     "score": -4,
     "subjectivity": 0.8,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "dbfd9yo",
@@ -525,15 +525,15 @@
     "type": "comment",
     "score": -9,
     "subjectivity": 0.5357142857142857,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "571kfh",
     "text_content": "[Discussion] Note7: for the love of gawd, Samsung don't throw the baby out with the bathwater. The Note platform is an absolute productivity monster. I held on to my Note 2 (which I am back on now, I cannot believe it!) for 4 years because it has helped me do so much. The Note7 was an incredible piece of tech, but the spontaneous combustions wasn't so hot.^ha ^ha ^ha.\n\nPlease, please, please keep making stylus phones. Just make them explode less -- or not at all.",
     "type": "post",
     "score": 11,
-    "subjectivity": 0.51,
-    "include_for_labeling": ""
+    "subjectivity": 0.51, 
+    "include_for_labeling": "Y"
   },
   {
     "id": "d8olpan",
@@ -541,7 +541,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 0.5918367346938777,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d8orxe5",
@@ -549,7 +549,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.5111111111111112,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "55a3ix",
@@ -557,7 +557,7 @@
     "type": "post",
     "score": 3,
     "subjectivity": 0.402,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d89y934",
@@ -565,7 +565,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 1.0,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d88u3o2",
@@ -573,7 +573,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.4,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "4xt995",
@@ -581,7 +581,7 @@
     "type": "post",
     "score": 27,
     "subjectivity": 0.602,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d6ir7r3",
@@ -589,7 +589,7 @@
     "type": "comment",
     "score": 4,
     "subjectivity": 1.0,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "4ys56v",
@@ -597,7 +597,7 @@
     "type": "post",
     "score": 1,
     "subjectivity": 0.5,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d6q27db",
@@ -605,7 +605,7 @@
     "type": "comment",
     "score": 6,
     "subjectivity": 0.5135416666666667,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d6q7rmk",
@@ -613,7 +613,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.5805555555555556,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "4y7wb9",
@@ -621,7 +621,7 @@
     "type": "post",
     "score": 3,
     "subjectivity": 0.414,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "55gl9a",
@@ -629,7 +629,7 @@
     "type": "post",
     "score": 4,
     "subjectivity": 0.432,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d8ahtfg",
@@ -637,7 +637,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.53125,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "4yejlb",
@@ -645,7 +645,7 @@
     "type": "post",
     "score": 2,
     "subjectivity": 0.519,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d6n7029",
@@ -653,7 +653,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.42727272727272725,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d6n7vlg",
@@ -661,7 +661,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.45454545454545453,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d6nuyp0",
@@ -669,7 +669,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.546969696969697,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "50uciy",
@@ -677,7 +677,7 @@
     "type": "post",
     "score": 2,
     "subjectivity": 0.562,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "4zurzq",
@@ -685,7 +685,7 @@
     "type": "post",
     "score": 19,
     "subjectivity": 0.75,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "4zw2i5",
@@ -693,7 +693,7 @@
     "type": "post",
     "score": 2,
     "subjectivity": 0.652,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d6z6pia",
@@ -701,7 +701,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.5625,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "4yjnzt",
@@ -709,7 +709,7 @@
     "type": "post",
     "score": 2,
     "subjectivity": 0.406,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "574ooo",
@@ -717,7 +717,7 @@
     "type": "post",
     "score": 3,
     "subjectivity": 0.404,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d8pmjse",
@@ -725,7 +725,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 0.49313725490196075,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d8pdqu2",
@@ -733,7 +733,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.4,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d8owm32",
@@ -741,7 +741,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 0.657308201058201,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d8p1gok",
@@ -749,7 +749,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.653968253968254,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d8p6dn3",
@@ -757,7 +757,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.45,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d8qq1ls",
@@ -773,7 +773,7 @@
     "type": "post",
     "score": 17,
     "subjectivity": 0.455,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "54p6qr",
@@ -781,7 +781,7 @@
     "type": "post",
     "score": 10,
     "subjectivity": 0.488,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d83sxgl",
@@ -789,7 +789,7 @@
     "type": "comment",
     "score": 4,
     "subjectivity": 0.6444444444444445,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d83uxiz",
@@ -797,7 +797,7 @@
     "type": "comment",
     "score": 4,
     "subjectivity": 0.5499999999999999,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d83ztej",
@@ -805,7 +805,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.5989861016176806,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d843ft0",
@@ -813,7 +813,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.4905723905723906,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d84bjqh",
@@ -821,7 +821,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.47333333333333344,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d84clj7",
@@ -829,7 +829,7 @@
     "type": "comment",
     "score": 0,
     "subjectivity": 0.6272727272727273,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "53pacg",
@@ -837,7 +837,7 @@
     "type": "post",
     "score": 13,
     "subjectivity": 0.456,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7v4i78",
@@ -845,7 +845,7 @@
     "type": "comment",
     "score": 5,
     "subjectivity": 0.5181818181818182,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7vec7e",
@@ -853,7 +853,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 0.5181818181818182,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7vr3el",
@@ -861,7 +861,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.8,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7vxph6",
@@ -869,7 +869,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.8666666666666667,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7vyc2k",
@@ -877,7 +877,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.5387445887445887,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "53ic1k",
@@ -885,7 +885,7 @@
     "type": "post",
     "score": 24,
     "subjectivity": 0.594,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7td75z",
@@ -893,7 +893,7 @@
     "type": "comment",
     "score": 12,
     "subjectivity": 0.5202380952380952,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7vblas",
@@ -901,7 +901,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 0.6785714285714285,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7tt7fo",
@@ -909,7 +909,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.5166666666666666,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7tm5t3",
@@ -917,7 +917,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.75,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7uljbu",
@@ -925,7 +925,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.6357142857142857,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7teq5q",
@@ -933,7 +933,7 @@
     "type": "comment",
     "score": 0,
     "subjectivity": 0.75,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "50wf7x",
@@ -941,7 +941,7 @@
     "type": "post",
     "score": 4,
     "subjectivity": 0.622,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d77mbb9",
@@ -949,7 +949,7 @@
     "type": "comment",
     "score": 5,
     "subjectivity": 0.7194444444444444,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d77i86e",
@@ -957,7 +957,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.5857142857142857,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "56vmk9",
@@ -965,7 +965,7 @@
     "type": "post",
     "score": 23,
     "subjectivity": 0.75,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d8n1lxb",
@@ -973,7 +973,7 @@
     "type": "comment",
     "score": 21,
     "subjectivity": 0.44999999999999996,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d8mums6",
@@ -981,7 +981,7 @@
     "type": "comment",
     "score": 15,
     "subjectivity": 0.44196428571428575,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d8n4ua7",
@@ -989,7 +989,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 0.5333333333333333,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d8njat2",
@@ -997,15 +997,15 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 1.0,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "5hrjxt",
     "text_content": "I know buying and selling is frowned upon, but maybe you guys can help. I want to find a Note 7. New preferred but used is okay. READ! I know, I know, recall, safety hazard, blah blah blah. I want one for collector's value. It will not ever be powered on, it will sit in the box in a hard protective case in a safe for several years until it's extremely collectible and sought after. That said, IF YOU HAVE ONE, I WANT IT. NAME YOUR PRICE! I WILL PAY UP! Any carrier, any storage, and I don't care if it's the original N7 or the replacement S version. \n\nI'd be willing to offer AT LEAST $900-1000 to anyone who has one, and if it's new in box sealed, I'd be willing to start around $1200-1300 or even more. I also have some other rare collectible electronics I could trade you. In contract? I'll buy out your contract for you as well so you don't have to trade it in! Over 93% of these devices have been returned so I NEED ONE ASAP!!! Please help, or even help link me with someone who has one! \n\nIn addition, if you can link me to someone who has a Note 7, AND it results in a completed sale, I am willing to offer $100.00 as a finder's fee!\n\nPlease, I am NOT kidding around here! I am COMPLETELY SERIOUS! I will pay through PayPal, and have it shipped FedEx with full insurance and signature, hell, if you're in the continental USA, I'll fly to you to pick it up and pay in cash!",
-    "type": "post",
+    "type": "post", 
     "score": 4,
     "subjectivity": 0.597,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "db2cp2f",
@@ -1013,7 +1013,7 @@
     "type": "comment",
     "score": 14,
     "subjectivity": 0.8,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "db30ixu",
@@ -1021,7 +1021,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.6375,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "db2wz5b",
@@ -1029,7 +1029,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.8,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "db3cwrt",
@@ -1037,7 +1037,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.5,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "db3img6",
@@ -1045,7 +1045,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.4166666666666667,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "521mg3",
@@ -1053,7 +1053,7 @@
     "type": "post",
     "score": 3,
     "subjectivity": 0.518,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7gn7s4",
@@ -1061,7 +1061,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 0.6933982683982683,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7gtf8h",
@@ -1069,7 +1069,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 0.5333333333333333,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7gz8et",
@@ -1077,7 +1077,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.7698863636363636,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7hfmpm",
@@ -1085,7 +1085,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.6666666666666666,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7i555x",
@@ -1093,7 +1093,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.5733333333333334,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "5b9232",
@@ -1101,7 +1101,7 @@
     "type": "post",
     "score": 11,
     "subjectivity": 0.41,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d9mr4hl",
@@ -1109,7 +1109,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.5,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d9o2928",
@@ -1117,7 +1117,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.6452380952380953,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d9nyfn9",
@@ -1125,7 +1125,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.47500000000000003,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "52emjx",
@@ -1133,7 +1133,7 @@
     "type": "post",
     "score": 4,
     "subjectivity": 1.0,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7jl0ec",
@@ -1141,7 +1141,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.4583333333333333,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7jnbrv",
@@ -1149,7 +1149,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 1.0,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "5h18ql",
@@ -1157,7 +1157,7 @@
     "type": "post",
     "score": 2,
     "subjectivity": 0.402,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "dawo688",
@@ -1165,7 +1165,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 1.0,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "db0a8vt",
@@ -1173,7 +1173,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.6478114478114477,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "51mixz",
@@ -1181,7 +1181,7 @@
     "type": "post",
     "score": 2,
     "subjectivity": 0.519,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7d62bx",
@@ -1189,7 +1189,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.4681818181818182,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7d2ons",
@@ -1197,7 +1197,7 @@
     "type": "comment",
     "score": 0,
     "subjectivity": 0.55,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "523zdp",
@@ -1205,7 +1205,7 @@
     "type": "post",
     "score": 6,
     "subjectivity": 0.5,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7h55ow",
@@ -1213,7 +1213,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 0.6444444444444444,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7hal7o",
@@ -1221,7 +1221,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.7,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "51na1m",
@@ -1229,7 +1229,7 @@
     "type": "post",
     "score": 6,
     "subjectivity": 0.54,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7dcke5",
@@ -1237,7 +1237,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.4,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7d9fkb",
@@ -1245,7 +1245,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.45,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "50vfxn",
@@ -1253,7 +1253,7 @@
     "type": "post",
     "score": 2,
     "subjectivity": 0.537,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d77vkke",
@@ -1261,7 +1261,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.53,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "58dawf",
@@ -1269,7 +1269,7 @@
     "type": "post",
     "score": 6,
     "subjectivity": 0.65,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d8znb5y",
@@ -1277,7 +1277,7 @@
     "type": "comment",
     "score": 6,
     "subjectivity": 0.8,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d8zij12",
@@ -1285,7 +1285,7 @@
     "type": "comment",
     "score": 3,
     "subjectivity": 0.6,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "51pecv",
@@ -1293,7 +1293,7 @@
     "type": "post",
     "score": 12,
     "subjectivity": 0.508,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7dtd1s",
@@ -1301,7 +1301,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.4815893630179345,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "51r7g1",
@@ -1309,7 +1309,7 @@
     "type": "post",
     "score": 13,
     "subjectivity": 0.4,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "d7eenhc",
@@ -1317,7 +1317,7 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.42828282828282827,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "59ppwi",
@@ -1325,7 +1325,7 @@
     "type": "post",
     "score": 6,
     "subjectivity": 0.445,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d9al1re",
@@ -1333,7 +1333,7 @@
     "type": "comment",
     "score": 9,
     "subjectivity": 0.5,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d9ai43k",
@@ -1341,7 +1341,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.5181818181818182,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d9ax8rc",
@@ -1349,7 +1349,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.5642857142857143,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d9azos4",
@@ -1357,7 +1357,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.7,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "5kpx36",
@@ -1365,7 +1365,7 @@
     "type": "post",
     "score": 9,
     "subjectivity": 0.435,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "dbq27cn",
@@ -1373,7 +1373,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.425,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "dbqkz1d",
@@ -1381,7 +1381,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.6011904761904762,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "58t6hm",
@@ -1389,7 +1389,7 @@
     "type": "post",
     "score": 4,
     "subjectivity": 0.619,
-    "include_for_labeling": ""
+    "include_for_labeling": "Y"
   },
   {
     "id": "54ic1q",
@@ -1397,7 +1397,7 @@
     "type": "post",
     "score": 3,
     "subjectivity": 0.414,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d833ju8",
@@ -1405,7 +1405,7 @@
     "type": "comment",
     "score": 1,
     "subjectivity": 0.44999999999999996,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "52gnbl",
@@ -1413,7 +1413,7 @@
     "type": "post",
     "score": 2,
     "subjectivity": 0.475,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   },
   {
     "id": "d7k57vd",
@@ -1421,6 +1421,6 @@
     "type": "comment",
     "score": 2,
     "subjectivity": 0.7666666666666666,
-    "include_for_labeling": ""
+    "include_for_labeling": "N"
   }
 ]

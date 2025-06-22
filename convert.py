@@ -102,8 +102,8 @@ def preview_data(json_file_path, num_rows=5):
 
 if __name__ == "__main__":
     # File paths - update these to match your files
-    json_file_path = "reddit_posts_note7_1-50+128.json"
-    output_json_path = "flattened_reddit_data.json"
+    json_file_path = "reddit-posts-2.json"
+    output_json_path = "flat2.json"
     
     # Flatten the data
     flattened_data = flatten_reddit_data(json_file_path, output_json_path)
