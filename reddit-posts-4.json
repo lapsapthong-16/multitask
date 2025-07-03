@@ -1,0 +1,800 @@
+[
+  {
+    "id": "4zwtx6",
+    "title": "[Guide] Get 18+ hours out of your Note 7, even while gaming, using GPS, and listening to music :)",
+    "selftext": "Hey guys! So I've been seeing a lot of people complaining about battery life and SoT lately with the Note 7. This strikes me as odd, because I've been consistently getting 18+ hours of battery, even while playing Fallout Shelter & Pokemon Go, listening to music, using GPS navigation, downloading my entire Spotify library, making calls, etc.\n\n**Here is what I did to go from around 7 hours of battery, to [18 hours](http://imgur.com/a/p2KFI) :)**\n\n.\n\n**Lets to turn off some unnecessary options**\n> Connections > Device Visibility **(Turn this off)**\n\n> Connections > Location **(Set this to GPS only)**\n\n> Connections > Location > Google Location History **(Turn this off)**\n\n> Advanced Features > Auto Brightness **(Make sure this is on)**\n\n> Advanced Features > Screen Timeout **(Set this to 15 seconds)**\n\n> Advanced Features > Keep Screen Turned Off **(Enable this)**\n\n> Google > Nearby **(Turn it off)**\n\n.\n\n**Next up is the screen**\n> Display > Auto Brightness **(Make sure this is on)**\n\n> Display > Screen Timeout **(Set this to 15 seconds)**\n\n> Display > Keep Screen Turned Off **(Enable this)**\n\n.\n\n**The cloud can be a silent killer**\n> Cloud and Accounts > Samsung Cloud **(Turn sync off)**\n\n> Cloud and Accounts > Google > *[Your Account]* **(Turn sync off)**\n\n> Cloud and Accounts > Samsung Account > [Your Account] **(Turn sync off)**\n\n> Cloud and Accounts > Backup and Reset **(Turn it all off)**\n\n.\n\n**Alright, so that's all for the phone Settings - But what about the bloatware?**\n\n> **Download [Package Disabler](https://play.google.com/store/apps/details?id=com.ospolice.packagedisablerpro) and use it to disable anything you do not need.**\n\n> (**[Here](http://www.filedropper.com/disabledpackages)** is the XML file I made, if you want to import and use it)\n\n.\n\nAnd there you have it! This is everything I did to take my phone's battery from needing charged every couple hours while surfing the web, to going 2 days of heavy usage without needing a charge. Cheers! :)",
+    "author": "Easy_Toast",
+    "created_utc": 1472340595.0,
+    "created_date": "2016-08-28 07:29:55",
+    "score": 78,
+    "num_comments": 14,
+    "url": "https://www.reddit.com/r/samsung/comments/4zwtx6/guide_get_18_hours_out_of_your_note_7_even_while/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 battery fire",
+    "subjectivity": 0.635,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d6zw0ar",
+        "comment_text": "I would add to your article that user don't forget to backup your device manually to cloud before hard reset.  Can tasker turn this on and off every month to backup automatically?",
+        "comment_score": 4,
+        "comment_author": "Nabobcoffee",
+        "comment_subjectivity": 0.5416666666666666
+      },
+      {
+        "comment_id": "d6zk9c1",
+        "comment_text": "Did everything you said, hope to see 18 hours too! Thats just ridiculous.. I can't even believe it!",
+        "comment_score": 3,
+        "comment_author": "iimthomas",
+        "comment_subjectivity": 1.0
+      },
+      {
+        "comment_id": "d70aghj",
+        "comment_text": "Did most of these and a factory reset and it's much better. Not sure about 18 hours with gaming and stuff but for sure over 10 hours. ",
+        "comment_score": 3,
+        "comment_author": "taboo007",
+        "comment_subjectivity": 0.6944444444444444
+      },
+      {
+        "comment_id": "d70a5dv",
+        "comment_text": "I agree with everything on your list aside from the cloud sync. One of the most important parts of an Android phone, for me, is the integration into the Google ecosystem. Everything is synced across my accounts. Emails, browser tabs, callender, etc. \n\n",
+        "comment_score": 2,
+        "comment_author": "Blaze9",
+        "comment_subjectivity": 0.75
+      },
+      {
+        "comment_id": "d71fefj",
+        "comment_text": "This is great, thanks for sharing!",
+        "comment_score": 2,
+        "comment_author": "VertigeB",
+        "comment_subjectivity": 0.475
+      }
+    ],
+    "num_extracted_comments": 5
+  },
+  {
+    "id": "545bxr",
+    "title": "Replacement Note 7 battery drain worse??",
+    "selftext": "So I got my replacement.. It definitely isn't as hot as the original, but the battery drain is faster in my opinion . Are any others seeing this as well?",
+    "author": "badass2000",
+    "created_utc": 1474645407.0,
+    "created_date": "2016-09-23 23:43:27",
+    "score": 14,
+    "num_comments": 18,
+    "url": "https://www.reddit.com/r/samsung/comments/545bxr/replacement_note_7_battery_drain_worse/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 battery fire",
+    "subjectivity": 0.733,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d7zcmf7",
+        "comment_text": "100 to 66 in 9 hours.  Actually. It's much better ",
+        "comment_score": 10,
+        "comment_author": "KilKidd",
+        "comment_subjectivity": 0.5
+      },
+      {
+        "comment_id": "d7z01vy",
+        "comment_text": "No.I don't see any changes in battery life. It's just awesome for all the features this phone has. I got the original Note7 on Aug 19 and after the recall got replacement on September 18th.\n\nJust now I checked, today it has given 7 hours SOT with 10% charge remaining. \nhttp://i.imgur.com/tIUcrGh.jpg",
+        "comment_score": 4,
+        "comment_author": "manojmcn",
+        "comment_subjectivity": 0.875
+      },
+      {
+        "comment_id": "d7znpfj",
+        "comment_text": "Been on my phone all day and haven't charged it at all, now on 40% battery life is much better....",
+        "comment_score": 3,
+        "comment_author": "jamesrick80",
+        "comment_subjectivity": 0.5
+      },
+      {
+        "comment_id": "d7zadft",
+        "comment_text": "I've noticed a significant change, and I'm not even at the rate of apps I had on the first version of the Note7. ",
+        "comment_score": 1,
+        "comment_author": "sharkgantua",
+        "comment_subjectivity": 0.6041666666666666
+      }
+    ],
+    "num_extracted_comments": 4
+  },
+  {
+    "id": "4zefxu",
+    "title": "Discussion: Note 7 Battery Life",
+    "selftext": "I'm curious to see what everyone is experiencing in terms of battery life. I am admittedly disappointed, with only 30 percent battery left I only got 2 hours of screen on time. I've disabled all of samsung's battery taxing features and have limited my use to texting and light web browsing. Is anyone else experiencing similar issues? \n\nEDIT: I've now tried factory resetting the phone per the advice of some others but it doesn't seem to have made a difference. After searching some forums it looks like disabling the KNOX services as well as OM Customize resolved the issue for others so I'll be trying that today.",
+    "author": "SignedTech101",
+    "created_utc": 1472068319.0,
+    "created_date": "2016-08-25 03:51:59",
+    "score": 2,
+    "num_comments": 19,
+    "url": "https://www.reddit.com/r/samsung/comments/4zefxu/discussion_note_7_battery_life/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 battery fire",
+    "subjectivity": 0.588,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d6v539k",
+        "comment_text": "I have not. I unplugged at 7AM. It's about 4:30PM and I'm at 42%. Curiously, my battery screen only shows Android system as the only drain. No clue why. But, I know I'm about 4 or 5 SOT ",
+        "comment_score": 6,
+        "comment_author": "Call_erv_duty",
+        "comment_subjectivity": 1.0
+      },
+      {
+        "comment_id": "d6vaux8",
+        "comment_text": "I guess I'm lucky, so far I'm averaging a day and a half of use to drain the battery. I did go through and disable a good portion of the at&t/samsung preinstalled apps though",
+        "comment_score": 2,
+        "comment_author": "kat1689",
+        "comment_subjectivity": 0.65
+      },
+      {
+        "comment_id": "d6vcc4x",
+        "comment_text": "I would say if you're getting anything below 3 hours of SOT then there is more at play.  I can't remember but was there any OS software updates you've had to download?  I know they try to throw them out early to squash any remaining bugs before consumers get to them.  9/10 your OS might need reloaded.  Kind of like tholme4 said his top drainer is Android OS, this should never be the case and pretty much screams corrupt or improper installation of an OS component.\n\nAs an example, one time after a software update my bluetooth started to \"ping\" multiple times a second, even when not in use and then caused my battery to drain extremely fast.  I only knew this was the case because I had logs going that was showing me real time what my device was doing.  Flashed the OS, problem gone.",
+        "comment_score": 2,
+        "comment_author": "scheisty",
+        "comment_subjectivity": 0.525
+      },
+      {
+        "comment_id": "d6v6q6k",
+        "comment_text": "Same here.  My AT&T Note 7 can't make it through the day without being charged and it dropped 15-20% overnight.  Something is not right.  The main battery drainers are Android OS and Android System, so not sure how to fix.",
+        "comment_score": 1,
+        "comment_author": "tholme4",
+        "comment_subjectivity": 0.470734126984127
+      },
+      {
+        "comment_id": "d6viber",
+        "comment_text": "The best I have gotten so far is like 4 hours but that is with like the medium power saving mode. Usually, I only get like 2 hours of screen on time also",
+        "comment_score": 1,
+        "comment_author": "myartdw",
+        "comment_subjectivity": 0.7666666666666666
+      }
+    ],
+    "num_extracted_comments": 5
+  },
+  {
+    "id": "4xzonk",
+    "title": "Fresh OS Install on Note 7",
+    "selftext": "Is anyone thinking of doing a fresh Android install on the the Note 7? I've had every note since they have come out and i was thinking about doing this.\n\nCan anyone tell me what their experience was by doing this? Did it make it better or worse?\n\nI just have the mindset of like when you get a new laptop, the first thing i do is do a fresh install of windows to get rid of all the bloatware crap that comes pre installed but i have never done it with a phone.\n\nThoughts?",
+    "author": "bolaz",
+    "created_utc": 1471356682.0,
+    "created_date": "2016-08-16 22:11:22",
+    "score": 2,
+    "num_comments": 15,
+    "url": "https://www.reddit.com/r/samsung/comments/4xzonk/fresh_os_install_on_note_7/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 battery fire",
+    "subjectivity": 0.523,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d6jqba8",
+        "comment_text": "If by fresh install you mean replacing TouchWiz with the stock Android OS, I'm definitely not going to do that because it eliminates a good majority of the reasons why I'm even getting the note (for it's features).",
+        "comment_score": 3,
+        "comment_author": "mikebreeezy",
+        "comment_subjectivity": 0.571875
+      },
+      {
+        "comment_id": "d6k4sjo",
+        "comment_text": "You can't really do that with a cell phone the same way you can with a laptop or desktop. There is no easy \"vanilla\" android OS you can install. You can flash custom firmware/ROMs, but that involves unlocking the phones bootloader and rooting, as well as possibly going s-off. \n\nAll of which I honestly don't recommend anymore. Yeah there will be bloatware, but you can hide it pretty well and get rid of most of it. \n\nDoing all that can also result in some serious stability issues and I've had nothing but problems with every phone I've rooted. Just leave it stock. ",
+        "comment_score": 2,
+        "comment_author": "-TheDoctor",
+        "comment_subjectivity": 0.6531250000000001
+      },
+      {
+        "comment_id": "d6mct9h",
+        "comment_text": "The s7 edge would be better for you. Its display is 2 tenths of an inch smaller... ",
+        "comment_score": 1,
+        "comment_author": "[deleted]",
+        "comment_subjectivity": 0.5
+      }
+    ],
+    "num_extracted_comments": 3
+  },
+  {
+    "id": "504z6l",
+    "title": "Just got a Note 7, a few questions.",
+    "selftext": "Hey all,\n\nI just picked up the Note 7, and I've been using it for about week. I just have a few questions. \n\nI love the Edge Lighting, but is there a way to either customize the color per app, or just use it on selective apps? Also, whenever my phone finds a location it will activate the Edge Lighting (but not vibrate or ring). Can I turn it off for the GPS signal? \n\nAlso, it appears to have a terrible idle time. I'm coming from the G4, and I would lose maybe 2% battery life whereas now overnight I'm losing 10. Could it be the Always On Display? I assumed because of the AMOLED screen it wouldn't affect battery cause most of the pixels are off anyway. \n\nAnd finally is there a use for the button on the side of the S-Pen (besides opening air command)? I don't mean the clicky top, just the home button shaped button on the side.\n\n\nIf it helps I'm running Nova Launcher on a Verizon branded phone. \n\nThanks in advance!",
+    "author": "Other_World",
+    "created_utc": 1472477048.0,
+    "created_date": "2016-08-29 21:24:08",
+    "score": 6,
+    "num_comments": 9,
+    "url": "https://www.reddit.com/r/samsung/comments/504z6l/just_got_a_note_7_a_few_questions/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 battery fire",
+    "subjectivity": 0.521,
+    "post_type": "opinion",
+    "extracted_comments": [],
+    "num_extracted_comments": 0
+  },
+  {
+    "id": "502wqq",
+    "title": "PSA: Galaxy Note 7 AT&T Battery Issues",
+    "selftext": "So this is sort of a follow up post to one I made the other day about experiencing issues with the Note 7 on AT&T. After trying to disable almost everything, I decided to take my phone back into the store I purchased it from while I was still within the exchange time window. When I brought the phone to the Samsung representative and told him I was experiencing battery issues he knew exactly what I was talking about. He explained to me that although not confirmed, the latest update from AT&T was causing massive battery draining issues for the Note 7 phones. I was able to exchange it for a new one per his advice. He told me not to update the phone until the next major software update. He also informed me of an AT&T feature that caused battery draining. In Settings->Connections->Mobile networks->Mobile data, there is a setting that is switched on by default by AT&T called Enhanced LTE Services. After switching this off my battery has been absolutely phenomenal. ",
+    "author": "SignedTech101",
+    "created_utc": 1472439106.0,
+    "created_date": "2016-08-29 10:51:46",
+    "score": 8,
+    "num_comments": 6,
+    "url": "https://www.reddit.com/r/samsung/comments/502wqq/psa_galaxy_note_7_att_battery_issues/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 battery fire",
+    "subjectivity": 0.51,
+    "post_type": "opinion",
+    "extracted_comments": [],
+    "num_extracted_comments": 0
+  },
+  {
+    "id": "5250ve",
+    "title": "bestbuy on the note 7",
+    "selftext": "talked with a best buy employee who told me about the fault,  there's a sensor in the phone that decides when fast charge or trickle should be used, that sensor on some phones is faulty causing the phone to stay in fast charge and over load or over heat the battery, he suggested that if im going to wait for the new batch of note 7's to visit http://www.bestbuy.com/site/clp/galaxy-note7-information/pcmcat748302046994.c?id=pcmcat748302046994\nand sign up for notifications on stock, but to turn off fast charging, and only charge it when you're around it and can keep an eye on it.",
+    "author": "slpater",
+    "created_utc": 1473539771.0,
+    "created_date": "2016-09-11 04:36:11",
+    "score": 6,
+    "num_comments": 5,
+    "url": "https://www.reddit.com/r/samsung/comments/5250ve/bestbuy_on_the_note_7/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 battery fire",
+    "subjectivity": 0.592,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d7hdeb8",
+        "comment_text": "Thanks for the tip. Just turned off fast charging on mine.",
+        "comment_score": 1,
+        "comment_author": "techincubus",
+        "comment_subjectivity": 0.4
+      },
+      {
+        "comment_id": "d7hry9m",
+        "comment_text": "I went to Best buy yesterday and their Samsung rep registered me for a new phone when they get new stock. ",
+        "comment_score": 1,
+        "comment_author": "WolfDemon",
+        "comment_subjectivity": 0.403030303030303
+      }
+    ],
+    "num_extracted_comments": 2
+  },
+  {
+    "id": "50cp77",
+    "title": "Note 7 Bluetooth volume notification and Battery notification",
+    "selftext": "I do not see a Bluetooth volume indicator when adjusting the volume from my wireless headphones (Powerbeats 2). I would like the option(an indicator) to see where my volume is at when I press the + or - button from the headphones. Similar to how iOS preforms. \n\nAlso is there an option for me to see the battery life of my headphones instead of them randomly dying? ",
+    "author": "monkey28rb",
+    "created_utc": 1472582505.0,
+    "created_date": "2016-08-31 02:41:45",
+    "score": 2,
+    "num_comments": 3,
+    "url": "https://www.reddit.com/r/samsung/comments/50cp77/note_7_bluetooth_volume_notification_and_battery/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 battery fire",
+    "subjectivity": 0.45,
+    "post_type": "opinion",
+    "extracted_comments": [],
+    "num_extracted_comments": 0
+  },
+  {
+    "id": "4x6q83",
+    "title": "Possibly a silly Question About the Note 7",
+    "selftext": "I have one on the way and I started thinking: if I were to submerge it in water, how would I go about drying everything off? I'd imagine the S-Pen slot to retain a lot of water, and even the charging/3.5mm ports too. Do I just wait it out before putting the S-Pen/charger/headphones in, or is there a trick to it?  \n\nThanks!",
+    "author": "mjmaher81",
+    "created_utc": 1470897758.0,
+    "created_date": "2016-08-11 14:42:38",
+    "score": 10,
+    "num_comments": 28,
+    "url": "https://www.reddit.com/r/samsung/comments/4x6q83/possibly_a_silly_question_about_the_note_7/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 explosion",
+    "subjectivity": 0.537,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d6cy3jb",
+        "comment_text": "Since it is water resistant, you don't even have to dry the phone. If you want to, you can dry it with a towel or something.\nThe S7 (and presumably the Note7) has a moisture sensor which blocks you from charging if the charging port is too wet",
+        "comment_score": 7,
+        "comment_author": "grandtheftbat01",
+        "comment_subjectivity": 0.5333333333333333
+      },
+      {
+        "comment_id": "d6d4a7s",
+        "comment_text": "I've used my S7 to take photos in an unchlorinated swimming pool and after around 3-4 hours, some moisture was still detected in my charging port when I plugged it in. I tapped/shook the phone lightly to get whatever water's in the port out, brushed inside with a clean fine-bristled toothbrush, plugged it in, and it charged fine. I also had a long bus ride after swimming, and I plugged in my earphones just fine. I think you'll be able insert the S Pen just fine, just let the water out.\n \nDon't use a blow dryer to dry your phone, the heat may affect the seals used for waterproofing. I really think shaking the water off is enough.",
+        "comment_score": 4,
+        "comment_author": "namwoohyun",
+        "comment_subjectivity": 0.4840909090909091
+      },
+      {
+        "comment_id": "d6czl7u",
+        "comment_text": "I imagine that everything should be fine, but I don't know how they would handle the ports. Maybe there is a feature, I have not delved into this myself. Note 7 will be my first water resistant phone.\n\nAs of right now, I am trying to figure out what the 30 minutes means. Obviously don't leave it in water for 30 minutes, but why only 30 minutes? Does the protective seal deteriorate? Is the phone only good for 30 minutes total of water submersion in it's lifetime? I may be looking too deep into this, but the 30 minutes seems a bit, vague.",
+        "comment_score": 4,
+        "comment_author": "[deleted]",
+        "comment_subjectivity": 0.611904761904762
+      }
+    ],
+    "num_extracted_comments": 3
+  },
+  {
+    "id": "594975",
+    "title": "So here in Korea Samsung announced an upgrade program for Note 7 owners and because I bought the phone directly from them full price, I can't participate.",
+    "selftext": "Where is the logic in that garbage. In Korea they announced a program where you can exchange your S7 or S7 Edge you got after exchanging your Note 7 for 50% off a s8 or note 8 but it's only available to people on a plan paying off their phone and not to people like me that bought the phone directly from Samsung at their store for the full 1,000,800 won price tag. \n\nI've called and asked them and everything and they do indeed tell me I cannot participate in this because I bought it from them and not from a carrier with a plan. So I'm not just reading it wrong. Some absolute garbage.",
+    "author": "CL60",
+    "created_utc": 1477312505.0,
+    "created_date": "2016-10-24 20:35:05",
+    "score": 46,
+    "num_comments": 18,
+    "url": "https://www.reddit.com/r/samsung/comments/594975/so_here_in_korea_samsung_announced_an_upgrade/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 refund",
+    "subjectivity": 0.638,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d95jfl7",
+        "comment_text": "The customer service aspect of this problem is garbage. I think stunts like this are hurting more than an explosive device.",
+        "comment_score": 12,
+        "comment_author": "PolaresBears",
+        "comment_subjectivity": 0.5
+      },
+      {
+        "comment_id": "d96qei1",
+        "comment_text": "50% off isn't even a great deal, some people were under the impression it was going to be nearly free\n\nDunno about korea but pretty much anywhere else you can sell a year old phone for at least half the value, which is essentially what they're offering as compensation for a major fuck up\n\nHere in Canada the S7E has a trade-in value of $325 currently, with every new flagship release they have a $150-$200 discount if you trade in a phone and that combines with the trade-in value of your phone so that's a $525 discount if the value doesn't drop\n\nUnless I misinterpreted the offer and you don't have to trade in your phone then it's still pretty ass since you'll have to sell it anyway if you're getting a new phone \n",
+        "comment_score": 7,
+        "comment_author": "devirtue",
+        "comment_subjectivity": 0.5161255411255411
+      },
+      {
+        "comment_id": "d96dynk",
+        "comment_text": "This whole situation by Samsung shitting on their own direct customers is why I flat out returned my Note 7.  I was given the run around as well when I purchased mine from Samsung.com.  Yet if I went to a brick and mortar store like BestBuy, I would have had so much better service.",
+        "comment_score": 5,
+        "comment_author": "RainStorm13",
+        "comment_subjectivity": 0.485
+      },
+      {
+        "comment_id": "d98a0j3",
+        "comment_text": "Very disappointed it's not for everyone still using Samsung devices and I'm on an Edge plan with Verizon.",
+        "comment_score": 1,
+        "comment_author": "sharkgantua",
+        "comment_subjectivity": 0.9750000000000001
+      },
+      {
+        "comment_id": "d96aqc6",
+        "comment_text": "cool story ",
+        "comment_score": -14,
+        "comment_author": "[deleted]",
+        "comment_subjectivity": 0.65
+      }
+    ],
+    "num_extracted_comments": 5
+  },
+  {
+    "id": "5c7hst",
+    "title": "Why Samsung has completely lost me as a customer",
+    "selftext": "Hi, I was a Galaxy Note 7 owner, and would like to share with you the nightmare that was (and is) the refund process.\n\nSome background,\nI bought my Note 7 in Singapore from a telecommunications company and signed a 2 year contract. This meant that I received the Note 7 at a slightly discounted price of around £420. However, I moved to the UK to pursue my studies in University, and was not able to make the refund/replacement window in Singapore. I contacted Samsung and they told me that they would replace/refund the phone directly for me while I was in the UK. Everything seemed fine.\n\nThat's when the nightmare began:\nIt has been close to two months of calls and emails to Samsung, mostly taking 2 emails for them to reply me once. Every time I emailed them, I received replies that told me that it was processing, and would take 2-3 business days. 10 days without communication later, I would email them again to receive the same reply. Calls were even worse, as the customer service representatives had no idea what was going on. They were only able to take down my IMEI and serial number, and say that it was submitted for processing.\n\nFinally, I received the offer for refund for my Note 7. Except that instead of refunding the full retail price of the device, as the customer representative had claimed they would, the offer was for slightly less than £420. This meant that I had paid for the contract, not been able to use the phone, and had to buy a new Pixel XL, while Samsung was not going to even refund me the full price of the phone. My local telecommunications company had put on their website that Samsung would be refunding the full price of the phone plus a SGD$100 credit, which was clearly false. \n\nBad enough as it was, Samsung had the audacity to insert a reference to the \"age of the device\" when calculating a refund amount. This is ridiculous in more than one way, as I was not able to use the phone after it was deemed unsafe, and the reason why I have had the phone for so long is because of the inefficiency on Samsung's side.\n\nSamsung's utter lack of care for their customers is disgusting. Instead of compensating me for having this unsafe device in my possession and being unable to use it for 2 months, they cause me further financial losses as well as put me through what is frankly the absolute worst customer service experience I have had. \n\nI am a huge supporter of the Note line, having owned the Note 2, Note 8 Tablet (the forgotten Note), and the Note Pro 12.2. But I will never opt for a Samsung device ever again after this terrible experience.\n\nTLDR; Samsung's service in the refund process is the worst, and they put the burden of the loss on their consumers.",
+    "author": "bloodyfeelin",
+    "created_utc": 1478779603.0,
+    "created_date": "2016-11-10 20:06:43",
+    "score": 4,
+    "num_comments": 3,
+    "url": "https://www.reddit.com/r/samsung/comments/5c7hst/why_samsung_has_completely_lost_me_as_a_customer/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 refund",
+    "subjectivity": 0.571,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d9vj056",
+        "comment_text": "Yup took me 60 days of high blood pressure and calling them to finally get a shipping label that should have arrived in 1-3 days. Lol",
+        "comment_score": 1,
+        "comment_author": "[deleted]",
+        "comment_subjectivity": 0.7466666666666667
+      },
+      {
+        "comment_id": "d9uaa1z",
+        "comment_text": "I keep hearing these horror stories about Samsung customer service. Its absolutely pathetic and horrible. ",
+        "comment_score": 0,
+        "comment_author": "kdcurry",
+        "comment_subjectivity": 1.0
+      },
+      {
+        "comment_id": "d9u9r6g",
+        "comment_text": "Im off samsung because the are forcing their silly, gimmicky curved displays down peoples throats.",
+        "comment_score": -5,
+        "comment_author": "JamesIsSoPro",
+        "comment_subjectivity": 0.5546296296296297
+      }
+    ],
+    "num_extracted_comments": 3
+  },
+  {
+    "id": "4ypre9",
+    "title": "Note 7 Random Reboot",
+    "selftext": "This is driving me crazy! My new Note 7 randomly reboots, but every time it vibrates then vibrates again about 3 seconds later before it reboots. I can't figure out what's causing it. Anyone have any idea? I really don't want to do a factory reset already. I just got all the settings set in the apps. \n\nUpdate: Would that be what it would do if it was over heating? Cuz it seems really hot. I don't ever remember my S7 Edge getting this hot.\n\nUpdate 2: Did  3 factory resets & it still randomly vibrates then reboots. Store is out of them & T-Mobile has them back ordered. :-(\n\nUpdate 3: Called & they are sending a new one since it's within the 14 day grace period. Sounds like it's a known issue since I'm not the only one seeing this.\n\nUpdate 4: Called because I never heard anything. Phone replacement \"order\" was never finished by the representative, so it was never shipped. So I spent another hour on the phone being passed from one department to another trying to get yet another replacement. This is getting downright ridiculous! It took me 6 calls & a trip to the store to preorder the phone now all this time wasted getting a replacement. \n\nUpdate 5: Got a replacement & it does it even more than the old one!!!! FML\n\nUpdate 6: They are sending me a 2nd replacement. The representative said that I was the 3rd person he talked to today that needed a replacement. There's a few [vids](https://youtu.be/_kqjZzApEZE) showing it on youtube too. So annoying & odd.\n\n[2nd phone](https://www.reddit.com/r/tmobile/comments/50kmx9/2nd_boot_looping_note_7_tmobile_wont_exchange_it/) did the same thing & worse! I think it's the bluetooth that was causing issues. Before I sent the phone back I had turned off the bluetooth & it stopped freezing & rebooting. Not that I'm an 100% sure that was the cause but maybe something to look at if anyone is reading this.",
+    "author": "riffy13",
+    "created_utc": 1471709552.0,
+    "created_date": "2016-08-21 00:12:32",
+    "score": 4,
+    "num_comments": 25,
+    "url": "https://www.reddit.com/r/samsung/comments/4ypre9/note_7_random_reboot/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 replacement",
+    "subjectivity": 0.424,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d76ae4s",
+        "comment_text": "Damn it, happening to me as well. It vibrates once then reboots. Sometimes it happens twice a day, sometimes never. I did Smart Switch and have Android Wear. ",
+        "comment_score": 2,
+        "comment_author": "vidocha",
+        "comment_subjectivity": 0.6428571428571429
+      },
+      {
+        "comment_id": "d6qficx",
+        "comment_text": "I've seen mine randomly reboot twice in the last 8 hours or so, not sure what's been causing it. ",
+        "comment_score": 1,
+        "comment_author": "[deleted]",
+        "comment_subjectivity": 0.48518518518518516
+      },
+      {
+        "comment_id": "d6r69ou",
+        "comment_text": "Did you make sure you didn't accidentally turn on auto reboot in settings?",
+        "comment_score": 1,
+        "comment_author": "alexherskovic",
+        "comment_subjectivity": 0.8888888888888888
+      }
+    ],
+    "num_extracted_comments": 3
+  },
+  {
+    "id": "5140xs",
+    "title": "How do you like your Note 7?",
+    "selftext": "I currently have a Note 4 and thinking of getting a Note 7. Will I notice a lot of difference between the two?",
+    "author": "lemi69",
+    "created_utc": 1472996655.0,
+    "created_date": "2016-09-04 21:44:15",
+    "score": 5,
+    "num_comments": 19,
+    "url": "https://www.reddit.com/r/samsung/comments/5140xs/how_do_you_like_your_note_7/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 replacement",
+    "subjectivity": 0.4,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d7978fl",
+        "comment_text": "I have used the note 4, and was quite fond of it, but in my personal opinion the note 7 blows it out of the water. It's just more comfortable to use. I have a 7 now, its bigger than the 4, but it doesn't feel that way. This is by far my favorite phone since the note 4. ",
+        "comment_score": 6,
+        "comment_author": "[deleted]",
+        "comment_subjectivity": 0.6833333333333332
+      },
+      {
+        "comment_id": "d797ndy",
+        "comment_text": "Amazing phone. No issues whatsoever. Love it.",
+        "comment_score": 10,
+        "comment_author": "tattoo2006",
+        "comment_subjectivity": 0.75
+      },
+      {
+        "comment_id": "d7950d8",
+        "comment_text": "I'm using a Note 3 and I'm still happy with it, so I'm going to grab a Note 7 when it gets cheaper!",
+        "comment_score": 2,
+        "comment_author": "[deleted]",
+        "comment_subjectivity": 1.0
+      },
+      {
+        "comment_id": "d793z5w",
+        "comment_text": "When it's not scalding hot it's amazing! ",
+        "comment_score": 3,
+        "comment_author": "[deleted]",
+        "comment_subjectivity": 0.875
+      },
+      {
+        "comment_id": "d79e10z",
+        "comment_text": "It's great, I only lost 3 fingers when it exploded! ",
+        "comment_score": 1,
+        "comment_author": "CokeCanNinja",
+        "comment_subjectivity": 0.875
+      },
+      {
+        "comment_id": "d793dme",
+        "comment_text": "Yes. You will not only see a slightly different battery, buy software and the new \"all glass design\" will look especially good in blue coral.",
+        "comment_score": 1,
+        "comment_author": "OfficialZino",
+        "comment_subjectivity": 0.630909090909091
+      },
+      {
+        "comment_id": "d79e8r8",
+        "comment_text": "I love mines. I can from. The note 5 and it makes me feel like my note 5 was defective or needed a full reset/wipe. The battery life us much better and it's very responsive and snappy. I will be replacing mines when I can get an on the spot replacement in store and hoping my replacement works as flawlessly as this one does. ",
+        "comment_score": 1,
+        "comment_author": "idelgado782",
+        "comment_subjectivity": 0.5900000000000001
+      },
+      {
+        "comment_id": "d79p763",
+        "comment_text": "It's pure fire homie. Do it. ",
+        "comment_score": 1,
+        "comment_author": "sharkgantua",
+        "comment_subjectivity": 0.5
+      },
+      {
+        "comment_id": "d79yfes",
+        "comment_text": "Feels like hairless cat in my hands - The fat from fingers sticks really well to all the shiny surfaces and creates this soft squishy feeling while touching it. Slipping it into pocket and out - it's all clean again.\n\nThe fingerprint crap was the main thing people warned me about, but it appears to be totally purposeful part of the design.",
+        "comment_score": 1,
+        "comment_author": "doneddat",
+        "comment_subjectivity": 0.46666666666666673
+      }
+    ],
+    "num_extracted_comments": 9
+  },
+  {
+    "id": "53o82x",
+    "title": "Will replacement Note 7s be allowed for use on flights?",
+    "selftext": "It seems the FAA has banned the Note 7 for use on flights. I can't find any info about if this covers the replacement units or when the ban will expire. Want to get my replacement unit tomorrow, But if I can never use it on a flight I will have to explore other options. Anyone have any more info?",
+    "author": "GnarltonBanks",
+    "created_utc": 1474389118.0,
+    "created_date": "2016-09-21 00:31:58",
+    "score": 10,
+    "num_comments": 8,
+    "url": "https://www.reddit.com/r/samsung/comments/53o82x/will_replacement_note_7s_be_allowed_for_use_on/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 replacement",
+    "subjectivity": 0.438,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d7v1mbg",
+        "comment_text": "Yeah they should. Just get ready for some arguments about people who don't know the replacements are rolling out yet. ",
+        "comment_score": 6,
+        "comment_author": "taboo007",
+        "comment_subjectivity": 0.5
+      },
+      {
+        "comment_id": "d7usjq9",
+        "comment_text": "I don't think anyone has made decisions for that yet. But assumedly, if the number of exploding Note7s drastically decline (I.e. the recall is successful) the ban should be off...\n\nDon't bet on your replacement unit being exempt from the get-go... How would a flight attendant know the difference between a \"dangerous\" Note7 and a completely safe new one?",
+        "comment_score": 2,
+        "comment_author": "gregersdk",
+        "comment_subjectivity": 0.6409090909090909
+      },
+      {
+        "comment_id": "d7usg4s",
+        "comment_text": "Probably yeah. But they're gonna wait a while until they're sure that most ppl have their replacements.",
+        "comment_score": 1,
+        "comment_author": "IIZANAGII",
+        "comment_subjectivity": 0.6944444444444444
+      },
+      {
+        "comment_id": "d7wd7ku",
+        "comment_text": "Korean Airlines have started allowing new issue-free Note 7 to be used. I think you just need the latest software update with green battery icon as proof.",
+        "comment_score": 1,
+        "comment_author": "manojmcn",
+        "comment_subjectivity": 0.5515151515151515
+      }
+    ],
+    "num_extracted_comments": 4
+  },
+  {
+    "id": "520fec",
+    "title": "Any info yet on when replacement Note 7 units hit stores?",
+    "selftext": "I'd like to exchange my phone, but I hate to be without it.",
+    "author": "keylimesoda",
+    "created_utc": 1473464676.0,
+    "created_date": "2016-09-10 07:44:36",
+    "score": 2,
+    "num_comments": 7,
+    "url": "https://www.reddit.com/r/samsung/comments/520fec/any_info_yet_on_when_replacement_note_7_units_hit/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 replacement",
+    "subjectivity": 0.9,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d7gczjp",
+        "comment_text": "Yeah I'm wondering the latest news as well. I saw a reddit post that the CPC or whatever acronym representing the government just got involved and they control when replacement phones can be shipped?\n\nBe nice to get samsung to divulge the details instead of getting a ton of random spam from crappy tech websites. \n\nThey can't afford to wait 4 months to simply give me a safe model phone. Would hurt the company and make Americans even more upset with government sticking their nose where they don't need to.\n\nSheesh ",
+        "comment_score": 1,
+        "comment_author": "heavylimacharlie",
+        "comment_subjectivity": 0.6261904761904762
+      }
+    ],
+    "num_extracted_comments": 1
+  },
+  {
+    "id": "52asqg",
+    "title": "New Note 7 being delivered the 14th or 15th",
+    "selftext": "Called Verizon customer service and they were super nice and very helpful.  My return box and label should be delivered Tuesday the 13th. My replacement Note 7 should be here the 14th or 15th. She texted me the tracking number.",
+    "author": "xtrachange",
+    "created_utc": 1473629241.0,
+    "created_date": "2016-09-12 05:27:21",
+    "score": 6,
+    "num_comments": 6,
+    "url": "https://www.reddit.com/r/samsung/comments/52asqg/new_note_7_being_delivered_the_14th_or_15th/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 replacement",
+    "subjectivity": 0.484,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d7j6l9s",
+        "comment_text": "unless something changed since Thurs, Verizon has no knowledge of when the new note 7 will come out. ",
+        "comment_score": 0,
+        "comment_author": "potterdood",
+        "comment_subjectivity": 0.45454545454545453
+      }
+    ],
+    "num_extracted_comments": 1
+  },
+  {
+    "id": "50csgl",
+    "title": "Note 7 Boot-Loops and Restarts Becoming an Issue",
+    "selftext": "",
+    "author": "EAGLESWhit",
+    "created_utc": 1472583566.0,
+    "created_date": "2016-08-31 02:59:26",
+    "score": 4,
+    "num_comments": 2,
+    "url": "http://swipetounlock.com/note-7-boot-loops-and-restarts/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 replacement",
+    "subjectivity": 0.85,
+    "post_type": "other",
+    "extracted_comments": [
+      {
+        "comment_id": "d73318p",
+        "comment_text": "I just got off the phone getting a 2nd replacement Note 7! [First one](https://www.reddit.com/r/samsung/comments/4ypre9/note_7_random_reboot/) was randomly freezing & rebooting. The new one is so much worse. Any time I try to do anything on the phone it locks up & reboots not saving a dam thing. Driving me crazy. The representative I talked to first said I was the 3rd person to call about this today. This is crazy!",
+        "comment_score": 3,
+        "comment_author": "riffy13",
+        "comment_subjectivity": 0.4468013468013468
+      }
+    ],
+    "num_extracted_comments": 1
+  },
+  {
+    "id": "56tf2m",
+    "title": "Should i just get a different phone?",
+    "selftext": "I love my note 7, i waited to Upgrade because i didn't like the 5 and i was still rocking a 3. However hearing that the replacements are blowing up is extremely annoying.. should i just wait it out for yet another replacement? Or just got for the pixel?  Or is there any other phone with a stylus like the s pen i should go for?",
+    "author": "mcfranerson",
+    "created_utc": 1476123154.0,
+    "created_date": "2016-10-11 02:12:34",
+    "score": 7,
+    "num_comments": 65,
+    "url": "https://www.reddit.com/r/samsung/comments/56tf2m/should_i_just_get_a_different_phone/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 replacement",
+    "subjectivity": 0.619,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d8mjx20",
+        "comment_text": "I fucking hate that I'm looking at iPhones now",
+        "comment_score": 20,
+        "comment_author": "Schlongzilla",
+        "comment_subjectivity": 0.9
+      },
+      {
+        "comment_id": "d8m8kqq",
+        "comment_text": "Just curious, any reason you didn't like the Note 5? I've had mine for 2 years, and I guess I'll be keeping it for another year...",
+        "comment_score": 2,
+        "comment_author": "intrepion",
+        "comment_subjectivity": 1.0
+      },
+      {
+        "comment_id": "d8md7eo",
+        "comment_text": "Nobody here has really answered your question because it's really a matter of opinion at this point. Personally I think it's sad. I feel for Samsung right now. Other posts say that Samsung doesn't care about their customers, but I think this shows that they actually care quite a bit. They're doing what they can to fix the issue, even if they aren't getting it right the first, or second time, they're trying and it's not like this is a result of poor decision making, or a matter of cutting costs or anything. They simply tried to launch a flagship phone that had unexpected battery issues. They tried to fix it and had issues again. It's pretty sad, and Samsung is going to feel the hit; if they haven't already. \n\nAs for other phones with a stylus, the LG Stylo phones do, but I can't comment on their performance or what the experience is like because I've only owned Samsung android phones. I'd check them out in person and see what you think, look at some online reviews, and go with your gut at this point. \n\nIf it says anything, I'm still on my Note 4 and was really anticipating the Note 7. I haven't switched yet because of these safety issues, but that's just my take. ",
+        "comment_score": 2,
+        "comment_author": "jakecox2012",
+        "comment_subjectivity": 0.5269423558897243
+      },
+      {
+        "comment_id": "d8mkn04",
+        "comment_text": "What about new Note 7's that were released to carriers that werent replacemet phones? \n\nI love this phone and Im torn because I have a new one that I waited to get once they re released to Verizon.",
+        "comment_score": 1,
+        "comment_author": "Schro3der",
+        "comment_subjectivity": 0.503030303030303
+      },
+      {
+        "comment_id": "d8mpk1g",
+        "comment_text": "I rocked the note 3 for about a year and a half. The gps stopped working 6 months ago and left me stranded, but the phone was paid off so I refused to let me give up the phone. 3 months ago the camera started acting up and every picture started becoming wavy, soon the camera wouldnt focus. a week before matthew was set to hit my area head on, it stopped connecting to data networks and mobile connection was dismal. Now my fiances note 5, is having connection issues and keeps dropping data connection until the phone is restarted. Similar case with another family members S4 which recently started having data connection issues. \n\nThis leaves me weary of samsung devices, it seems to far off from coincidence that 3 devices would start acting up in a similar matter. It swayed my decision away from another samsung device. Seeing that they push a new model every year now shows me they are no longer seeking longevity of the devices they offer. The note 7 fiasco is just another nail. Its a shame, Loved the note 3, even on dated software and hardware it was a capable device. Reluctantly I took an upgrade to the LG G5 as I needed a reliable phone asap before Hurricane Matthew hit.\n\nAs for the stylus? Its a cool feature, but why not get a dedicated tablet with a stylus so you can achieve greater potential out of it, then just opt for a phone with good specs? The pixel certainly seems like a solid choice for an upgrade.",
+        "comment_score": 1,
+        "comment_author": "zepherance",
+        "comment_subjectivity": 0.4523689273689274
+      }
+    ],
+    "num_extracted_comments": 5
+  },
+  {
+    "id": "53yw7p",
+    "title": "[Other] Samsung Promotion Status",
+    "selftext": "I pre-ordered my Note 7 and received it on 08.19.16. I sent in my claim for the Gear Fit 2 watch on 08.22.16. The submission was approved within days and has been sitting in \"Congratulations! Your submission has been approved and your gift has been processed and is currently in route\" since. About a week after launch my fiance also purchased a Note 7 and submitted for the 256BG SD card. She received her SD card last week. Yes I know the promotion states 12 weeks and I am willing to wait. Has anyone else experienced a delay with the Fit2 but not with the SD card? Do you think they are just prioritizing their logistics for the replacements?  \n\nEDIT1: Finally received a tracking number this weekend. Fit2 should arrive on Tuesday!",
+    "author": "Sir_LulzWorth",
+    "created_utc": 1474550344.0,
+    "created_date": "2016-09-22 21:19:04",
+    "score": 2,
+    "num_comments": 31,
+    "url": "https://www.reddit.com/r/samsung/comments/53yw7p/other_samsung_promotion_status/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 replacement",
+    "subjectivity": 0.556,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d7y1by5",
+        "comment_text": "I never even got an email confirming my fit was approved. I just got a ups tag one day and there it was. ",
+        "comment_score": 1,
+        "comment_author": "[deleted]",
+        "comment_subjectivity": 0.4
+      },
+      {
+        "comment_id": "d84iqjq",
+        "comment_text": "the status FINALLY CHANGED to approval waiting for shipment.",
+        "comment_score": 1,
+        "comment_author": "[deleted]",
+        "comment_subjectivity": 1.0
+      }
+    ],
+    "num_extracted_comments": 2
+  },
+  {
+    "id": "4wln1k",
+    "title": "What's the deal with Note 7 promo pricing?",
+    "selftext": "Netflix is worth $120, Fit 2 is worth $160, and the MicroSD is worth $250. . . why not just make them all even and have 2 years of netflix and a Gear S2? Those are all relatively similarly priced and they'd be what people should be buying if they were smart and got the SD card and sold it ;) I mean, even if you don't sell it for the original price, which I doubt most people would be able to do anyway, I'd guess you could get around $200 for it and that's still more than the other two are worth.",
+    "author": "cloverasx",
+    "created_utc": 1470589305.0,
+    "created_date": "2016-08-08 01:01:45",
+    "score": 5,
+    "num_comments": 24,
+    "url": "https://www.reddit.com/r/samsung/comments/4wln1k/whats_the_deal_with_note_7_promo_pricing/",
+    "subreddit": "samsung",
+    "search_query": "Samsung Note 7 angry",
+    "subjectivity": 0.449,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d67zdy9",
+        "comment_text": "You're quoting retail prices. All this stuff is cheaper to make and Netflix most likely took less for that year promo like they do when you pay via iTunes ",
+        "comment_score": 3,
+        "comment_author": "lost_in_life_34",
+        "comment_subjectivity": 0.5222222222222223
+      }
+    ],
+    "num_extracted_comments": 1
+  },
+  {
+    "id": "4zl0vk",
+    "title": "The camera on the note 7 is great!! I took a photo of a C5 Galaxy at a traffic light. Whipped my phone out and snapped this in a split second without trying to line up the shot.",
+    "selftext": "",
+    "author": "CantSeeShit",
+    "created_utc": 1472161102.0,
+    "created_date": "2016-08-26 05:38:22",
+    "score": 45,
+    "num_comments": 4,
+    "url": "https://i.redd.it/atuk73r4llhx.jpg",
+    "subreddit": "samsung",
+    "search_query": "Note 7 customer service",
+    "subjectivity": 0.483,
+    "post_type": "other",
+    "extracted_comments": [],
+    "num_extracted_comments": 0
+  },
+  {
+    "id": "4w509y",
+    "title": "Where to purchase Note 7 (Carrier Free), Unlocked in USA?",
+    "selftext": "Hi.\nI currently own a Nexus 6p which I purchased from the Google store . \nI am thinking of upgrading  to Note 7. I have a Lycamobile Sim and would like to use the same. Can you please tell me where can I purchase an Unlocked, official Note 7 ? \nI browsed Samsung.com , they do have the Unlocked phones but I have to purchase it via carriers like T-mobile and Sprint..... I want to purchase Note 7 without going through the carrier like you would buy any Nexus or One plus one. \nI had the same issue when Note 5 released , emailed Customer care for Samsung they redirected me to Amazon. \nBelow is the link on Amazon. I am scared its not legit after going through some recent reviews.\nPlease help.\nhttps://www.amazon.com/Samsung-Unlocked-Galaxy-Note-Factory/dp/B00WJE3B38/ref=sr_1_4?s=wireless&ie=UTF8&qid=1470323089&sr=1-4&keywords=Note+5",
+    "author": "niikhil",
+    "created_utc": 1470323889.0,
+    "created_date": "2016-08-04 23:18:09",
+    "score": 1,
+    "num_comments": 8,
+    "url": "https://www.reddit.com/r/samsung/comments/4w509y/where_to_purchase_note_7_carrier_free_unlocked_in/",
+    "subreddit": "samsung",
+    "search_query": "Note 7 customer service",
+    "subjectivity": 0.46,
+    "post_type": "opinion",
+    "extracted_comments": [
+      {
+        "comment_id": "d641n24",
+        "comment_text": "It'll be a couple of months before it's available, similar to the S7",
+        "comment_score": 2,
+        "comment_author": "Call_erv_duty",
+        "comment_subjectivity": 0.4
+      }
+    ],
+    "num_extracted_comments": 1
+  }
+]

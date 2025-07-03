@@ -22,7 +22,19 @@ reddit = praw.Reddit(
 
 # Define the search parameters
 subreddit_name = 'samsung'
-search_queries = ["Galaxy Note 7", "Note7", "Samsung fire", "Note 7 recall", "Note 7 fire", "Samsung Phone", "Samsung explode"]
+search_queries = [
+    "Galaxy Note 7 recall",
+    "Note 7 recall",
+    "Note 7 battery fire",
+    "Note 7 explosion",
+    "Note 7 refund",
+    "Note 7 replacement",
+    "My Note 7 exploded",
+    "Samsung Note 7 angry",
+    "Note 7 customer service",
+    "Samsung Note 7 disappointed",
+    "Note 7 overheating"
+]
 max_posts_per_query = 100
 max_comments_per_post = 10
 
