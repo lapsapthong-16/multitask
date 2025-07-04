@@ -8,19 +8,16 @@ import warnings
 warnings.filterwarnings('ignore')
 
 def setup_models():
-    """Initialize all models and tokenizers"""
-    print("🔧 Setting up models...")
-    
     # VADER analyzer
     vader_analyzer = SentimentIntensityAnalyzer()
     
     # BERTweet models
-    print("📡 Loading BERTweet models...")
+    print("Loading BERTweet models...")
     bertweet_sentiment_model = "cardiffnlp/twitter-roberta-base-sentiment-latest"
     bertweet_emotion_model = "j-hartmann/emotion-english-distilroberta-base"
     
     # RoBERTa models  
-    print("🤖 Loading RoBERTa models...")
+    print("Loading RoBERTa models...")
     roberta_sentiment_model = "cardiffnlp/twitter-roberta-base-sentiment-latest"
     roberta_emotion_model = "j-hartmann/emotion-english-distilroberta-base"
     
@@ -49,11 +46,10 @@ def setup_models():
                                   max_length=512,
                                   truncation=True)
     
-    print("✅ All models loaded successfully!")
+    print("All models loaded successfully!")
     return vader_analyzer, bertweet_sentiment_pipe, bertweet_emotion_pipe, roberta_sentiment_pipe, roberta_emotion_pipe
 
 def analyze_vader_sentiment(text, analyzer):
-    """Analyze sentiment using VADER"""
     scores = analyzer.polarity_scores(text)
     compound = scores['compound']
     
@@ -65,7 +61,6 @@ def analyze_vader_sentiment(text, analyzer):
         return "Neutral"
 
 def analyze_bertweet_sentiment(text, pipe):
-    """Analyze sentiment using BERTweet"""
     try:
         result = pipe(text)[0]
         label = result['label']
@@ -83,7 +78,6 @@ def analyze_bertweet_sentiment(text, pipe):
         return "Neutral"
 
 def analyze_emotion(text, pipe):
-    """Analyze emotion using emotion classification model"""
     try:
         result = pipe(text)[0]
         emotion = result['label']
@@ -104,7 +98,6 @@ def analyze_emotion(text, pipe):
         return "Neutral"
 
 def analyze_roberta_sentiment(text, pipe):
-    """Analyze sentiment using RoBERTa"""
     try:
         result = pipe(text)[0]
         label = result['label']
@@ -122,10 +115,9 @@ def analyze_roberta_sentiment(text, pipe):
         return "Neutral"
 
 def process_dataset(input_file, output_file):
-    """Process the entire dataset and add annotations"""
-    print(f"📂 Loading dataset from {input_file}...")
+    print(f"Loading dataset from {input_file}...")
     df = pd.read_csv(input_file)
-    print(f"📊 Dataset loaded: {len(df)} entries")
+    print(f"Dataset loaded: {len(df)} entries")
     
     # Setup models
     vader_analyzer, bertweet_sentiment_pipe, bertweet_emotion_pipe, roberta_sentiment_pipe, roberta_emotion_pipe = setup_models()
