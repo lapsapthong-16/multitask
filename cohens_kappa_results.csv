@@ -1,5 +1,0 @@
-Comparison,Kappa,Interpretation,Valid_Samples
-VADER vs BERTWEET,0.40955184821720636,Weak agreement,95
-VADER vs ROBERTA,0.40955184821720636,Weak agreement,95
-BERTWEET vs ROBERTA,1.0,Perfect agreement,95
-BERTWEET vs ROBERTA,1.0,Perfect agreement,95
