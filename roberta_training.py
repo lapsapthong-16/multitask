@@ -183,7 +183,20 @@ class RobertaTrainer:
     def preprocess_external_data(self, dataset: Dict, task: str) -> Dict:
         """Preprocess external datasets"""
         logger.info(f"Preprocessing external data for {task}...")
-        
+
+        # --- ADD THIS BLOCK FOR EMOTION TASK ---
+        if task == 'emotion':
+            # Only keep samples with label in [0, 1, 2, 3, 4, 5]
+            def filter_first_6_classes(example):
+                # Handle both single-label and multi-label
+                if isinstance(example['labels'], list):
+                    return example['labels'] and example['labels'][0] in range(6)
+                else:
+                    return example['labels'] in range(6)
+            dataset['train'] = dataset['train'].filter(filter_first_6_classes)
+            dataset['validation'] = dataset['validation'].filter(filter_first_6_classes)
+        # --- END BLOCK ---
+
         def tokenize_function(examples):
             if task == 'sentiment':
                 texts = examples['sentence']
@@ -195,7 +208,7 @@ class RobertaTrainer:
                     labels = [label_list[0] if label_list else 0 for label_list in examples['labels']]
                 else:
                     labels = examples['labels']
-            
+
             tokenized = self.tokenizer(
                 texts,
                 truncation=True,
@@ -203,20 +216,20 @@ class RobertaTrainer:
                 max_length=self.max_length,
                 return_tensors=None
             )
-            
+
             tokenized['labels'] = labels
             return tokenized
-        
+
         # Tokenize datasets
         tokenized_train = dataset['train'].map(tokenize_function, batched=True)
         tokenized_val = dataset['validation'].map(tokenize_function, batched=True)
-        
+
         # Take subsets for faster training
         train_subset = tokenized_train.shuffle(seed=42).select(range(min(10000, len(tokenized_train))))
         val_subset = tokenized_val.shuffle(seed=42).select(range(min(2000, len(tokenized_val))))
-        
+
         logger.info(f"✅ Preprocessed {task} data: {len(train_subset)} train, {len(val_subset)} val")
-        
+
         return {'train': train_subset, 'validation': val_subset}
     
     def train_model(self, dataset: Dict, task: str, num_labels: int, 

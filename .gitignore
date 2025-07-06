@@ -13,3 +13,7 @@ __pycache__/
 
 # VSCode settings
 .vscode/
+
+#models
+roberta_sentiment_model/
+roberta_sentiment_model_final/
