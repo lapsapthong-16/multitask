@@ -16,4 +16,4 @@ __pycache__/
 
 #models
 roberta_sentiment_model/
-roberta_sentiment_model_final/
+roberta_emotion_model/
