@@ -17,3 +17,5 @@ __pycache__/
 #models
 roberta_sentiment_model/
 roberta_emotion_model/
+hyperparameter_tuning_sentiment_20250709_123125/
+roberta_sentiment_model_optimized/
