@@ -22,3 +22,4 @@ roberta_sentiment_model_optimized/
 hyperparameter_tuning_emotion_20250709_180520
 roberta_emotion_model_optimized
 roberta_ultra_light/
+multitask_model_optimized/
