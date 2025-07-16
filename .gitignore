@@ -15,13 +15,9 @@ __pycache__/
 .vscode/
 
 #models
-roberta_sentiment_model/
-roberta_emotion_model/
-hyperparameter_tuning_sentiment_20250709_123125/
-roberta_sentiment_model_optimized/
-hyperparameter_tuning_emotion_20250709_180520
-roberta_emotion_model_optimized
-roberta_ultra_light/
-deberta_optimized/
-bertweet_model_ultra_light/
-trained_models_seeds/
+initial_emotion_model/
+initial_sentiment_model/
+initial_multitask_model/
+temp_trial_0/
+temp_trial_1/
+temp_trial_2/
