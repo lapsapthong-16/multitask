@@ -16,3 +16,6 @@ __pycache__/
 
 #models
 LLLL/
+initial_bertweet_multitask_model/
+initial_bertweet_sentiment_model/
+initial_bertweet_emotion_model/
