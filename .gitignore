@@ -15,9 +15,4 @@ __pycache__/
 .vscode/
 
 #models
-initial_emotion_model/
-initial_sentiment_model/
-initial_multitask_model/
-temp_trial_0/
-temp_trial_1/
-temp_trial_2/
+LLLL/
