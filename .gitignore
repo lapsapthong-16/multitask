@@ -22,3 +22,4 @@ initial_bertweet_emotion_model/
 final_bertweet_multitask_model/
 final_bertweet_sentiment_model/
 final_bertweet_emotion_model/
+bertweet/
