@@ -23,3 +23,4 @@ final_bertweet_multitask_model/
 final_bertweet_sentiment_model/
 final_bertweet_emotion_model/
 bertweet/
+bertweet_trained_models_seeds/
