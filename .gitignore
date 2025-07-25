@@ -19,4 +19,5 @@ LLLL/
 distilroberta/
 bertweet/
 
-bertweet_seed_analysis_results/
+bertweet_trained_models_seeds/
+distilroberta_trained_models_seeds/
