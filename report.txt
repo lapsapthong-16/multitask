@@ -1,0 +1,85 @@
+
+    ================================================================================
+    🧠 BERTWEET EXPLAINABILITY ANALYSIS REPORT
+    ================================================================================
+
+    📊 ANALYSIS OVERVIEW:
+    - Models Compared: Single-Task BERTweet vs Multitask BERTweet (Sentiment Head)
+    - Test Examples: 7 examples
+    - Explanation Method: Integrated Gradients
+    - Evaluation Metrics: Faithfulness, Stability, Fairness
+
+    ================================================================================
+    📈 FAITHFULNESS RESULTS (Confidence drop when removing top 20% tokens):
+
+    Single-Task Model:
+    - Mean: 0.0119 ± 0.0154
+
+    Multitask Model:
+    - Mean: -0.0186 ± 0.0248
+
+    Interpretation: Higher values indicate more faithful explanations.
+    ✅ Single-task model shows higher faithfulness
+
+    ================================================================================
+    🔄 STABILITY RESULTS (Cosine similarity across perturbations):
+
+    Single-Task Model:
+    - Mean: -0.0392 ± 0.3426
+
+    Multitask Model:
+    - Mean: 0.8859 ± 0.0753
+
+    Interpretation: Higher values indicate more stable explanations.
+    ✅ Multitask model shows higher stability
+
+    ================================================================================
+    ⚖️ FAIRNESS RESULTS (Emotion bias ratio):
+
+    Single-Task Model:
+    - Mean: 0.7189 ± 1.6039
+
+    Multitask Model:
+    - Mean: 0.3909 ± 0.6883
+
+    Interpretation: Lower values indicate less biased explanations.
+    ✅ Multitask model shows lower bias
+
+    ================================================================================
+    📊 ATTRIBUTION CONCENTRATION (Gini coefficient):
+
+    Single-Task Model:
+    - Mean: 0.4127 ± 0.0567
+
+    Multitask Model:
+    - Mean: 0.4186 ± 0.0882
+
+    Interpretation: Lower values indicate more distributed attributions.
+    ✅ Single-task model shows more distributed attributions
+
+    ================================================================================
+    🔍 KEY FINDINGS:
+
+    1. FAITHFULNESS: The single-task model produces more faithful explanations,
+       meaning its important tokens have greater impact on predictions.
+
+    2. STABILITY: The multitask model generates more stable explanations
+       that remain consistent across input perturbations.
+
+    3. FAIRNESS: The multitask model shows less bias toward emotion words,
+       suggesting more balanced attention to different types of features.
+
+    4. CONCENTRATION: The single-task model distributes attributions more evenly
+       across tokens rather than concentrating on few words.
+
+    ================================================================================
+    💡 IMPLICATIONS:
+
+    Multitask training appears to have mixed effects on explanation quality for sentiment analysis.
+    The shared representation learning may lead to more robust and interpretable feature attribution patterns.
+
+    This suggests that multitask learning affects the model's ability to identify
+    relevant sentiment indicators in a more explainable manner.
+
+    ================================================================================
+    
