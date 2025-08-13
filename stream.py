@@ -284,6 +284,25 @@ def attribution_scores(model, tokenizer, enc, target_idx: int, real_ig: bool):
         scores = scores / (scores.max() + 1e-8)
     return scores.tolist()
 
+from typing import List
+
+def html_highlight(tokens: List[str], scores: List[float]) -> str:
+    chunks = []
+    skip = {"<s>", "</s>", "[CLS]", "[SEP]", "[PAD]"}
+    for tok, s in zip(tokens, scores):
+        if tok in skip:
+            continue
+        # strip common wordpiece prefixes
+        if tok.startswith("##"):
+            tok = tok[2:]
+        if tok == "Ġ":
+            continue
+        opacity = min(max(float(s), 0.06), 1.0)  # clamp to [0.06, 1.0] so faint tokens are still visible
+        chunks.append(
+            f"<span style='background: rgba(255,165,0,{opacity}); padding:2px 4px; border-radius:4px; margin:2px'>{tok}</span>"
+        )
+    return "<div style='line-height:2; font-family: ui-sans-serif, system-ui, -apple-system'>" + " ".join(chunks) + "</div>"
+
 def resolve_paths(mode: str, bk: str):
     if mode == "Single-task":
         sent_path = os.path.join("models", "sentiment", bk)
@@ -416,19 +435,19 @@ with tab1:
                 
                 # Show explanations if requested
                 if explain:
-                    st.subheader("Token Attributions")
-                    st.write("**Sentiment:**")
-                    s_scores = attribution_scores(s_mdl, s_tok, s_enc, 
-                                                SENTIMENT_LABELS.index(s_label), real_ig_toggle)
-                    s_tokens = s_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
-                    st.markdown(html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
-                    
-                    st.write("**Emotion:**")
-                    e_scores = attribution_scores(e_mdl, e_tok, e_enc, 
-                                                EMOTION_LABELS.index(e_label), real_ig_toggle)
-                    e_tokens = e_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
-                    st.markdown(html_highlight(e_tokens, e_scores), unsafe_allow_html=True)
-                    
+                    try:
+                        st.markdown("### Token Attributions")
+                        # Sentiment
+                        s_tokens = s_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
+                        s_scores = attribution_scores(s_mdl_or_mtl, s_tok, s_enc, SENTIMENT_LABELS.index(s_label), real_ig_toggle and USE_CAPTUM, head="sent" if is_mtl else None)
+                        st.markdown(html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
+
+                        # Emotion
+                        e_tokens = e_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
+                        e_scores = attribution_scores(e_mdl_or_mtl, e_tok, e_enc, EMOTION_LABELS.index(e_label), real_ig_toggle and USE_CAPTUM, head="emo" if is_mtl else None)
+                        st.markdown(html_highlight(e_tokens, e_scores), unsafe_allow_html=True)
+                    except Exception as ex:
+                        st.warning(f"Explanation rendering failed: {ex}")
             else:
                 if not os.path.exists(choice["mtl"]):
                     st.error(f"MTL path not found: {choice['mtl']}")
