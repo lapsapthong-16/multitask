@@ -342,26 +342,36 @@ st.caption("Samsung Galaxy Note 7 crisis • Sentiment & Emotion with token-leve
 
 with st.sidebar:
     st.header("Settings")
-    model_choice = st.radio(
-        "Model:",
-        ["Single-task (BERTweet + DistilRoBERTa)", "Multi-task (shared encoder)"],
-        index=0
-    )
+
+    # CHOOSE HERE (only place)
+    mode_choice = st.radio("Mode:", ["Single-task", "Multi-task"], index=0)
+    backbone_choice = st.radio("Backbone:", ["BERTweet", "DistilRoBERTa"], index=0)
+
     explain = st.checkbox("Show explanations (token attributions)", value=True)
-    real_ig_toggle = st.checkbox("Use **Integrated Gradients** (Captum)", value=False and USE_CAPTUM,
-                                 help=("Requires `captum`. If not installed, the app will fall back to a simple saliency."))
+    real_ig_toggle = st.checkbox(
+        "Use Integrated Gradients (Captum)",
+        value=False and USE_CAPTUM,
+        help="Requires `captum`. If not installed, the app will fall back to a simple saliency."
+    )
+
     st.markdown("---")
     st.write("**Notes**")
     st.write("- Keep class orders consistent with training.")
     st.write("- Captum IG is slower but more principled.")
 
-tab1, tab2 = st.tabs(["Single Text", "Batch CSV"])
-
-# Mode and backbone selection
-mode_choice = st.radio("Mode:", ["Single-task", "Multi-task"], index=0)
-backbone_choice = st.radio("Backbone:", ["BERTweet", "DistilRoBERTa"], index=0)
 bk = backbone_choice.lower()  # "bertweet" or "distilroberta"
 
+# Reload models when backbone changes
+if 'current_backbone' not in st.session_state:
+    st.session_state.current_backbone = bk
+if st.session_state.current_backbone != bk:
+    st.session_state.current_backbone = bk
+    sentiment_tok, sentiment_mdl, emotion_tok, emotion_mdl = load_models(bk)
+    reload_mtl_for_backbone(bk)
+
+choice = resolve_paths(mode_choice, bk)
+
+tab1, tab2 = st.tabs(["Single Text", "Batch CSV"])
 # Reload models when backbone changes
 if 'current_backbone' not in st.session_state:
     st.session_state.current_backbone = bk
