@@ -128,8 +128,8 @@ def check_mtl_availability(backbone):
     if not os.path.exists(mtl_path):
         return False
     
-    # Look for any model files
-    model_files = [f for f in os.listdir(mtl_path) if f.endswith('.pt') or f.endswith('.safetensors')]
+    # Look for any model files including .bin files
+    model_files = [f for f in os.listdir(mtl_path) if f.endswith('.pt') or f.endswith('.safetensors') or f.endswith('.bin')]
     return len(model_files) > 0
 
 # Try to load MTL if available for bertweet (default)
@@ -225,18 +225,24 @@ def tokens_and_embeds(model, tokenizer, enc):
     return tokens, attention_mask, input_ids, forward_embeds
 
 
-def attribution_scores(model, tokenizer, enc, target_idx: int, real_ig: bool):
+def attribution_scores(model, tokenizer, enc, target_idx: int, real_ig: bool, head=None):
     """
     Return token-level attribution scores in [0,1].
     If real_ig=True and Captum available, use Integrated Gradients.
     Else use a one-pass saliency on input embeddings (norm of grad).
+    
+    Args:
+        head: For MTL models, specify 'sent' for sentiment or 'emo' for emotion
     """
     input_ids = enc["input_ids"]
     attention_mask = enc.get("attention_mask", None)
     token_count = input_ids.shape[1]
     
-    # Handle different model architectures
-    if hasattr(model, 'base_model'):
+    # Handle different model architectures for embeddings
+    if hasattr(model, 'encoder') and hasattr(model.encoder, 'embeddings'):
+        # For SimpleMTL models
+        embeddings_layer = model.encoder.embeddings.word_embeddings
+    elif hasattr(model, 'base_model'):
         embeddings_layer = model.base_model.get_input_embeddings()
     elif hasattr(model, 'roberta'):
         embeddings_layer = model.roberta.get_input_embeddings()
@@ -255,26 +261,45 @@ def attribution_scores(model, tokenizer, enc, target_idx: int, real_ig: bool):
             return [0.0] * token_count
 
     if real_ig and USE_CAPTUM:
-        # True Integrated Gradients
-        tokens, attn, ids, forward = tokens_and_embeds(model, tokenizer, enc)
-        baseline_ids = torch.full_like(ids, fill_value=tokenizer.pad_token_id or tokenizer.eos_token_id)
-        baseline_embeds = embeddings_layer(baseline_ids).to(DEVICE)
-        input_embeds = embeddings_layer(ids).to(DEVICE)
+        # True Integrated Gradients - needs more complex handling for MTL
+        # For now, fall back to simple saliency for MTL models
+        if hasattr(model, 'sent_head') and hasattr(model, 'emo_head'):
+            real_ig = False
+        else:
+            tokens, attn, ids, forward = tokens_and_embeds(model, tokenizer, enc)
+            baseline_ids = torch.full_like(ids, fill_value=tokenizer.pad_token_id or tokenizer.eos_token_id)
+            baseline_embeds = embeddings_layer(baseline_ids).to(DEVICE)
+            input_embeds = embeddings_layer(ids).to(DEVICE)
 
-        ig = IntegratedGradients(lambda e: forward(e)[:, target_idx])
-        attributions, _ = ig.attribute(inputs=input_embeds,
-                                       baselines=baseline_embeds,
-                                       additional_forward_args=None,
-                                       n_steps=50, return_convergence_delta=True)
-        # aggregate across hidden dim
-        scores = attributions.norm(p=2, dim=-1).squeeze(0).detach().cpu().numpy()
-    else:
+            ig = IntegratedGradients(lambda e: forward(e)[:, target_idx])
+            attributions, _ = ig.attribute(inputs=input_embeds,
+                                           baselines=baseline_embeds,
+                                           additional_forward_args=None,
+                                           n_steps=50, return_convergence_delta=True)
+            scores = attributions.norm(p=2, dim=-1).squeeze(0).detach().cpu().numpy()
+    
+    if not real_ig or not USE_CAPTUM:
         # Lightweight saliency: grad wrt input embeddings (one backward pass)
         for p in model.parameters():
             p.requires_grad_(False)
         input_embeds = embeddings_layer(input_ids).detach().clone().to(DEVICE).requires_grad_(True)
         outputs = model(inputs_embeds=input_embeds, attention_mask=attention_mask)
-        logits = outputs.logits.squeeze(0)
+        
+        # Handle MTL models that return tuples vs standard models that return objects
+        if hasattr(model, 'sent_head') and hasattr(model, 'emo_head'):
+            # MTL model returns (sent_logits, emo_logits)
+            sent_logits, emo_logits = outputs
+            if head == "sent":
+                logits = sent_logits.squeeze(0)
+            elif head == "emo":
+                logits = emo_logits.squeeze(0)
+            else:
+                # Default to sentiment if not specified
+                logits = sent_logits.squeeze(0)
+        else:
+            # Standard model returns object with .logits attribute
+            logits = outputs.logits.squeeze(0)
+            
         logits[target_idx].backward()
         grads = input_embeds.grad.detach()  # [1, seq, hid]
         scores = grads.norm(dim=-1).squeeze(0).cpu().numpy()
@@ -329,26 +354,74 @@ def load_mtl_dir(mtl_path):
         # Check if the path exists and contains required files
         if not os.path.exists(mtl_path):
             return None, None
-            
-        # Look for model files
-        model_files = [f for f in os.listdir(mtl_path) if f.endswith('.pt') or f.endswith('.safetensors')]
-        if not model_files:
-            return None, None
-            
-        # Load tokenizer and model
+        
+        # Load tokenizer
         tok = AutoTokenizer.from_pretrained(mtl_path, use_fast=True)
         
-        # For MTL, we need to create a custom model structure
-        # Since we don't have the exact MTL model architecture, we'll use a fallback
-        try:
-            # Try to load as a regular model first
-            mdl = AutoModelForSequenceClassification.from_pretrained(mtl_path)
-        except:
-            # If that fails, create a simple MTL model
-            mdl = SimpleMTL(mtl_path)
-            
+        # Check what type of model we have based on the files present
+        has_pytorch_model_bin = os.path.exists(os.path.join(mtl_path, "pytorch_model.bin"))
+        has_custom_components = os.path.exists(os.path.join(mtl_path, "custom_components.pt"))
+        has_safetensors = os.path.exists(os.path.join(mtl_path, "model.safetensors"))
+        
+        # Check if this is a custom model type that won't work with standard loading
+        config_path = os.path.join(mtl_path, "config.json")
+        is_custom_model_type = False
+        if os.path.exists(config_path):
+            import json
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+                model_type = config.get("model_type", "")
+                # Check for custom model types that Transformers doesn't recognize
+                if model_type in ["BERTweetMultiTaskTransformer"]:
+                    is_custom_model_type = True
+        
+        if has_pytorch_model_bin and not has_custom_components:
+            # BERTweet case: Custom MTL model saved as pytorch_model.bin
+            if is_custom_model_type:
+                # Skip standard loading for known custom types
+                mdl = SimpleMTL("vinai/bertweet-base")
+                state_dict = torch.load(os.path.join(mtl_path, "pytorch_model.bin"), map_location=DEVICE)
+                mdl.load_state_dict(state_dict, strict=False)
+            else:
+                try:
+                    # Try standard loading for recognized types
+                    mdl = AutoModelForSequenceClassification.from_pretrained(mtl_path)
+                except Exception as e:
+                    # Fallback to SimpleMTL
+                    mdl = SimpleMTL("vinai/bertweet-base")
+                    state_dict = torch.load(os.path.join(mtl_path, "pytorch_model.bin"), map_location=DEVICE)
+                    mdl.load_state_dict(state_dict, strict=False)
+                
+        elif has_custom_components and has_safetensors:
+            # DistilRoBERTa case: Base model + custom components
+            try:
+                # Load the base model first
+                mdl = AutoModelForSequenceClassification.from_pretrained(mtl_path)
+            except:
+                # Fallback: create SimpleMTL and load components
+                mdl = SimpleMTL("distilroberta-base")
+                # Load custom components if they exist
+                custom_components_path = os.path.join(mtl_path, "custom_components.pt")
+                if os.path.exists(custom_components_path):
+                    custom_state = torch.load(custom_components_path, map_location=DEVICE)
+                    mdl.load_state_dict(custom_state, strict=False)
+        else:
+            # Fallback: try standard loading
+            if is_custom_model_type:
+                # Skip standard loading for custom types
+                base_model = "vinai/bertweet-base" if "bertweet" in mtl_path.lower() else "distilroberta-base"
+                mdl = SimpleMTL(base_model)
+            else:
+                try:
+                    mdl = AutoModelForSequenceClassification.from_pretrained(mtl_path)
+                except:
+                    # Determine base model from path
+                    base_model = "vinai/bertweet-base" if "bertweet" in mtl_path.lower() else "distilroberta-base"
+                    mdl = SimpleMTL(base_model)
+                
         mdl.eval().to(DEVICE)
         return tok, mdl
+        
     except Exception as e:
         st.error(f"Failed to load MTL model from {mtl_path}: {str(e)}")
         return None, None
@@ -356,7 +429,7 @@ def load_mtl_dir(mtl_path):
 # =========================
 # UI
 # =========================
-st.title("PR Crisis Sentiment & Emotion – Streamlit Demo")
+st.title("PR Crisis Sentiment & Emotion")
 st.caption("Samsung Galaxy Note 7 crisis • Sentiment & Emotion with token-level attributions (XAI).")
 
 with st.sidebar:
