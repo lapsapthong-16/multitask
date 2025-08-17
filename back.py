@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# Connected to venv (Python 3.11.5)
+
 # In[1]:
 
 
@@ -45,7 +47,53 @@ def set_seed(s=42):
 set_seed(42)
 
 
+# Connected to .venv (Python 3.12.7)
+
 # In[2]:
+
+
+import os
+import json
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from typing import Dict, List, Tuple, Optional, Any
+import joblib
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics.pairwise import cosine_similarity
+import nltk
+from nltk.corpus import wordnet
+import random
+import warnings
+from itertools import combinations
+warnings.filterwarnings("ignore")
+
+# HuggingFace imports
+from transformers import AutoTokenizer, AutoConfig, AutoModel
+from datasets import load_dataset
+
+# Captum imports for Integrated Gradients
+from captum.attr import IntegratedGradients, visualization as viz
+from captum.attr import TokenReferenceBase, configure_interpretable_embedding_layer, remove_interpretable_embedding_layer
+
+# Set seed for determinism
+def set_seed(s=42):
+    random.seed(s)
+    np.random.seed(s)
+    torch.manual_seed(s)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(s)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+set_seed(42)
+
+
+# In[3]:
 
 
 # Set device
@@ -55,7 +103,8 @@ print(f"🔧 Using device: {device}")
 
 # ## Model Architecture
 
-# In[3]:
+
+# In[4]:
 
 
 class BERTweetSingleTaskTransformer(nn.Module):
@@ -150,7 +199,7 @@ class BERTweetSingleTaskTransformer(nn.Module):
         return model
 
 
-# In[4]:
+# In[5]:
 
 
 class BERTweetMultiTaskTransformer(nn.Module):
@@ -265,9 +314,11 @@ class BERTweetMultiTaskTransformer(nn.Module):
 
 # ## Model Loading
 
-# In[5]:
+
+# In[ ]:
+
+
 def load_single_task_models_by_seeds(base_dir: str, seeds=(42, 43, 44, 45, 46)):
-    """Load multiple single-task models trained with different seeds"""
     model_dicts = []
     for s in seeds:
         path = os.path.join(base_dir, f"bertweet_sentiment_seed_{s}")
@@ -284,7 +335,7 @@ def load_single_task_models_by_seeds(base_dir: str, seeds=(42, 43, 44, 45, 46)):
     return model_dicts
 
 
-# In[6]:
+# In[7]:
 
 
 def load_test_examples(data_path: str = "data/cleaned_reddit_posts.csv", num_examples: int = 10) -> List[str]:
@@ -318,7 +369,43 @@ def load_test_examples(data_path: str = "data/cleaned_reddit_posts.csv", num_exa
 
 # ## IG Generation
 
-# In[7]:
+
+# In[8]:
+
+
+def load_test_examples(data_path: str = "data/cleaned_reddit_posts.csv", num_examples: int = 10) -> List[str]:
+
+    print(f"📊 Loading {num_examples} test examples from {data_path}")
+    
+    if data_path.endswith('.csv'):
+        df = pd.read_csv(data_path)
+        texts = df['text_content'].head(num_examples).tolist()
+    else:
+        # Handle JSON files if needed
+        with open(data_path, 'r') as f:
+            data = json.load(f)
+        texts = [item['text'] for item in data[:num_examples]]
+    
+    # Clean and filter texts
+    cleaned_texts = []
+    for text in texts:
+        if isinstance(text, str) and len(text.strip()) > 10:
+            # Basic cleaning
+            cleaned_text = text.strip()
+            if len(cleaned_text.split()) >= 5:  # At least 5 words
+                cleaned_texts.append(cleaned_text)
+        
+        if len(cleaned_texts) >= num_examples:
+            break
+    
+    print(f"✅ Loaded {len(cleaned_texts)} valid test examples")
+    return cleaned_texts
+
+
+# ## IG Generation
+
+
+# In[9]:
 
 
 class BERTweetIntegratedGradients:
@@ -523,11 +610,10 @@ class BERTweetIntegratedGradients:
                 return None
 
 
-# In[8]:
+# In[ ]:
 
 
 def generate_single_task_explanations(texts: List[str], ref_model_dict: Dict) -> List[Dict]:
-    """Generate explanations using a single reference model"""
     ig_explainer = BERTweetIntegratedGradients()
     results = []
     for i, text in enumerate(texts):
@@ -541,7 +627,8 @@ def generate_single_task_explanations(texts: List[str], ref_model_dict: Dict) ->
 
 # ## Eval Metrics
 
-# In[9]:
+
+# In[12]:
 
 
 def evaluate_faithfulness(
@@ -632,7 +719,7 @@ def evaluate_faithfulness(
     return faithfulness_scores
 
 
-# In[10]:
+# In[13]:
 
 
 def evaluate_stability(
@@ -775,7 +862,150 @@ def evaluate_stability_across_seeds(text: str, seed_model_dicts: List[Dict], ig_
     }
 
 
-# In[11]:
+# In[14]:
+
+
+def evaluate_stability(
+    text: str,
+    model_dict: Dict,
+    attribution_result: Dict,
+    num_perturbations: int = 5
+) -> Dict[str, float]:
+
+    print("📊 Evaluating stability...")
+    
+    ig_explainer = BERTweetIntegratedGradients()
+    original_scores = np.array(attribution_result['attribution_scores'])
+    
+    perturbed_scores = []
+    
+    for i in range(num_perturbations):
+        try:
+            # Create perturbed text
+            perturbed_text = create_text_perturbation(text)
+            
+            # Generate attributions for perturbed text
+            perturbed_result = ig_explainer.generate_attributions(perturbed_text, model_dict)
+            
+            if perturbed_result and len(perturbed_result['attribution_scores']) > 0:
+                # Align scores (pad or truncate to match original length)
+                perturbed_score = np.array(perturbed_result['attribution_scores'])
+                min_len = min(len(original_scores), len(perturbed_score))
+                
+                if min_len > 0:
+                    orig_aligned = original_scores[:min_len]
+                    pert_aligned = perturbed_score[:min_len]
+                    perturbed_scores.append(pert_aligned)
+        
+        except Exception as e:
+            print(f"⚠️ Error generating perturbation {i}: {e}")
+            continue
+    
+    if not perturbed_scores:
+        return {'stability_cosine': 0.0, 'stability_correlation': 0.0}
+    
+    # Calculate stability metrics
+    cosine_similarities = []
+    correlations = []
+    
+    for pert_scores in perturbed_scores:
+        min_len = min(len(original_scores), len(pert_scores))
+        if min_len > 1:
+            orig_aligned = original_scores[:min_len]
+            pert_aligned = pert_scores[:min_len]
+            
+            # Cosine similarity
+            if np.linalg.norm(orig_aligned) > 0 and np.linalg.norm(pert_aligned) > 0:
+                cos_sim = cosine_similarity([orig_aligned], [pert_aligned])[0, 0]
+                cosine_similarities.append(cos_sim)
+            
+            # Correlation
+            if len(set(orig_aligned)) > 1 and len(set(pert_aligned)) > 1:
+                corr = np.corrcoef(orig_aligned, pert_aligned)[0, 1]
+                if not np.isnan(corr):
+                    correlations.append(corr)
+    
+    # Average stability scores
+    avg_cosine = np.mean(cosine_similarities) if cosine_similarities else 0.0
+    avg_correlation = np.mean(correlations) if correlations else 0.0
+    
+    return {
+        'stability_cosine': avg_cosine,
+        'stability_correlation': avg_correlation,
+        'num_valid_perturbations': len(perturbed_scores)
+    }
+
+
+def _standardize(v: np.ndarray) -> np.ndarray:
+    """Standardize vector to remove scale/offset differences across seeds"""
+    v = v.astype(np.float32)
+    mu, sd = v.mean(), v.std()
+    return (v - mu) / (sd + 1e-8)
+
+def evaluate_stability_across_seeds(text: str, seed_model_dicts: List[Dict], ig_explainer=None):
+    """Evaluate stability across different seed models for the same text"""
+    print("📊 Evaluating stability across seeds...")
+    if ig_explainer is None:
+        ig_explainer = BERTweetIntegratedGradients()
+
+    # 1) Get reference attribution + class with the first seed
+    ref_md = seed_model_dicts[0]
+    ref = ig_explainer.generate_attributions(text, ref_md)
+    if not ref: 
+        return {'stability_cosine': 0.0, 'stability_correlation': 0.0, 'num_seed_pairs': 0}
+    
+    ref_class = int(ref['predicted_class'])
+    ref_scores = np.array(ref['attribution_scores'])
+    
+    # Store reference tokenization for consistency
+    ref_tokenizer = ref_md['tokenizer']
+    
+    print(f"🔒 Reference class: {ref_class}, using tokenizer from seed {ref_md['seed']}")
+    
+    # 2) For all seeds, recompute IG FOR THE SAME TARGET CLASS
+    seed_attr = [(ref_md['seed'], ref_scores)]
+    for md in seed_model_dicts[1:]:
+        res = ig_explainer.generate_attributions(
+            text, md, 
+            force_target_class=ref_class,
+            force_tokenizer=ref_tokenizer
+        )
+        if res and len(res['attribution_scores']) > 0:
+            seed_attr.append((md['seed'], np.array(res['attribution_scores'])))
+            print(f"✅ Seed {md['seed']}: computed IG for target class {ref_class}")
+        else:
+            print(f"❌ Seed {md['seed']}: failed to compute IG")
+
+    if len(seed_attr) < 2:
+        return {'stability_cosine': 0.0, 'stability_correlation': 0.0, 'num_seed_pairs': 0}
+
+    # 3) Pairwise similarities on same-length prefix
+    cos_sims, cors = [], []
+    for i in range(len(seed_attr)):
+        for j in range(i+1, len(seed_attr)):
+            a, b = seed_attr[i][1], seed_attr[j][1]
+            L = min(len(a), len(b))
+            if L > 1:
+                A, B = a[:L], b[:L]
+                # Standardize vectors before computing similarity
+                A = _standardize(A)
+                B = _standardize(B)
+                # Cosine similarity
+                na, nb = np.linalg.norm(A), np.linalg.norm(B)
+                if na > 0 and nb > 0:
+                    cos_sims.append((A @ B) / (na * nb))
+                # Pearson correlation
+                if A.std() > 0 and B.std() > 0:
+                    cors.append(np.corrcoef(A, B)[0, 1])
+
+    return {
+        'stability_cosine': float(np.mean(cos_sims)) if cos_sims else 0.0,
+        'stability_correlation': float(np.mean(cors)) if cors else 0.0,
+        'num_seed_pairs': len(cos_sims)
+    }
+
+
+# In[15]:
 
 
 def create_text_perturbation(text: str) -> str:
@@ -819,7 +1049,7 @@ def create_text_perturbation(text: str) -> str:
     return ' '.join(words)
 
 
-# In[12]:
+# In[16]:
 
 
 def evaluate_fairness(attribution_result: Dict) -> Dict[str, float]:
@@ -884,11 +1114,8 @@ def evaluate_fairness(attribution_result: Dict) -> Dict[str, float]:
     return fairness_metrics
 
 
-# In[13]:
-
-
+# In[ ]:
 def evaluate_single_task_explanations_across_seeds(explanations: List[Dict], seed_model_dicts: List[Dict]) -> List[Dict]:
-    """Evaluate single-task explanations: faithfulness & fairness on reference seed, stability across seeds"""
     print("🔬 Evaluating single-task explanations across seeds...")
     rows = []
     ref_model = seed_model_dicts[0]  # e.g., seed 42
@@ -911,7 +1138,8 @@ def evaluate_single_task_explanations_across_seeds(explanations: List[Dict], see
 
 # ## Visualisation
 
-# In[14]:
+
+# In[ ]:
 
 
 def visualize_attributions(attribution_result: Dict, save_path: Optional[str] = None):
@@ -995,9 +1223,6 @@ def visualize_attributions(attribution_result: Dict, save_path: Optional[str] = 
 
 
 def generate_comprehensive_visualizations(attribution_result: Dict, save_dir: str = "explainability_results"):
-    """
-    Generate all visualization types for a given attribution result
-    """
     os.makedirs(save_dir, exist_ok=True)
     
     # Generate base filename
@@ -1469,7 +1694,9 @@ def plot_evaluation_comparison(evaluation_results: Dict, save_path: Optional[str
     plt.show()
 
 
-# In[15]:
+# In[19]:
+
+
 def save_eval_csv(rows: List[Dict], path: str):
     """Save evaluation results to CSV"""
     df = pd.DataFrame(rows)
@@ -1478,12 +1705,7 @@ def save_eval_csv(rows: List[Dict], path: str):
     return df
 
 
-# In[16]:
-
-
-
-
-# In[17]:
+# In[20]:
 
 
 def run_complete_analysis(
@@ -1648,6 +1870,3 @@ if __name__ == "__main__":
         save_dir="explainability_results_single_task"
     )
 
-
-
-# %%

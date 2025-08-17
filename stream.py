@@ -14,13 +14,9 @@ st.set_page_config(page_title="PR Crisis Sentiment & Emotion (XAI Demo)", layout
 import torch.nn as nn
 from transformers import AutoModel
 
-MTL_DIR = "models/mtl"  # folder with mtl_model.pt and base_tok/
+MTL_DIR = "models/mtl" 
 
 class SimpleMTL(nn.Module):
-    """
-    Example MTL: shared encoder + two linear heads.
-    Adjust hidden size to match your encoder.
-    """
     def __init__(self, encoder_name_or_path, num_sent=3, num_emo=6):
         super().__init__()
         self.encoder = AutoModel.from_pretrained(encoder_name_or_path)
@@ -29,15 +25,12 @@ class SimpleMTL(nn.Module):
         self.emo_head  = nn.Linear(hidden, num_emo)
 
     def forward(self, **enc):
-        # use [CLS] (or first token) pooled representation
         out = self.encoder(**enc)
-        # RoBERTa/BERTweet: take first token's hidden state
         cls = out.last_hidden_state[:, 0, :]
         return self.sent_head(cls), self.emo_head(cls)
 
 @st.cache_resource(show_spinner=True)
 def load_mtl():
-    """Load MTL model if available"""
     mtl_model_path = os.path.join(MTL_DIR, "mtl_model.pt")
     base_tok_path = os.path.join(MTL_DIR, "base_tok")
     
@@ -48,7 +41,6 @@ def load_mtl():
         tok = AutoTokenizer.from_pretrained(base_tok_path, use_fast=True)
         mdl = SimpleMTL(base_tok_path)
         state = torch.load(mtl_model_path, map_location=DEVICE)
-        # if keys had 'module.' from DDP: state = {k.replace("module.", ""): v for k,v in state.items()}
         mdl.load_state_dict(state, strict=True)
         mdl.eval().to(DEVICE)
         return tok, mdl
@@ -56,10 +48,6 @@ def load_mtl():
         st.error(f"Failed to load MTL model: {str(e)}")
         return None, None
 
-# =========================
-# CONFIG — edit as needed
-# =========================
-# Base paths - will be combined with backbone choice
 SENTIMENT_BASE = "models/sentiment"     
 EMOTION_BASE   = "models/emotion"       
 
@@ -68,9 +56,8 @@ SENTIMENT_LABELS = ["Negative", "Neutral", "Positive"]
 EMOTION_LABELS   = ["Anger", "Fear", "Joy", "Sadness", "Surprise", "No Emotion"]
 
 MAX_LEN = 128
-DEVICE = "cpu"  # keep cpu for grading demo; switch to "cuda" if available
+DEVICE = "cpu" 
 
-# Optional Captum (true Integrated Gradients). If not installed, we'll fall back to a 1-pass saliency.
 USE_CAPTUM = False
 try:
     import captum
@@ -79,17 +66,11 @@ try:
 except Exception:
     USE_CAPTUM = False
 
-# =========================
-# LOAD MODELS
-# =========================
 @st.cache_resource(show_spinner=True)
 def load_models(backbone="bertweet"):
-    """Load models based on backbone choice"""
-    # Construct paths with backbone subdirectory
     sentiment_path = os.path.join(SENTIMENT_BASE, backbone)
     emotion_path = os.path.join(EMOTION_BASE, backbone)
     
-    # Load sentiment model
     try:
         sent_tok = AutoTokenizer.from_pretrained(sentiment_path, use_fast=True)
         sent_mdl = AutoModelForSequenceClassification.from_pretrained(sentiment_path)
@@ -124,21 +105,17 @@ mtl_tok, mtl_mdl = None, None
 # Check if MTL models exist for the current backbone
 def check_mtl_availability(backbone):
     mtl_path = os.path.join(MTL_DIR, backbone)
-    # Check if the directory exists and contains model files
     if not os.path.exists(mtl_path):
         return False
     
-    # Look for any model files including .bin files
     model_files = [f for f in os.listdir(mtl_path) if f.endswith('.pt') or f.endswith('.safetensors') or f.endswith('.bin')]
     return len(model_files) > 0
 
-# Try to load MTL if available for bertweet (default)
 if check_mtl_availability("bertweet"):
     mtl_tok, mtl_mdl = load_mtl()
     if mtl_tok is not None and mtl_mdl is not None:
         mtl_available = True
 
-# Function to reload MTL for different backbones
 def reload_mtl_for_backbone(backbone):
     global mtl_tok, mtl_mdl, mtl_available
     if check_mtl_availability(backbone):

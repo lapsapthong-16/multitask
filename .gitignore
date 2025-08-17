@@ -13,11 +13,12 @@ __pycache__/
 
 # VSCode settings
 .vscode/
+models/
 
 #models
 LLLL/
-distilroberta/
-bertweet/
+distilroberta2/
+bertweet2/
 
 bertweet_trained_models_seeds/
 distilroberta_trained_models_seeds/
