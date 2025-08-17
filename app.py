@@ -449,6 +449,8 @@ if sentiment_tok is None or sentiment_mdl is None or emotion_tok is None or emot
     st.error("Failed to load initial models. Please check the model paths and try again.")
     st.stop()
 
+# --- Cleaner stakeholder helpers (drop-in replacement) ---
+
 STOPWORDS = {
     "the","a","an","to","of","and","or","but","if","in","on","at","for","with","as","by",
     "is","am","are","was","were","be","been","being","it","its","i","im","i'm","my","me",
@@ -458,101 +460,121 @@ STOPWORDS = {
 
 def _aggregate_word_scores(tokens, scores):
     """
-    Merge subword tokens into whole words and aggregate scores.
+    Merge subword tokens into whole words and aggregate scores (max).
     Handles:
-      - BERT WordPiece:        '##word'
-      - RoBERTa/BERTweet:     'Ġword' (Ġ = leading space)
-      - BPE suffix style:     'wor@@' + 'd'
-    Aggregation: max over subpieces.
+      - RoBERTa/BERTweet: 'Ġword' (Ġ = leading space -> new word)
+      - BERT WordPiece:   '##piece' (continuation)
+      - BPE suffix:       'wor@@' + 'd' (continuation if endswith @@)
+      - Plain tokens:     start a NEW word (unless continuing an open BPE/WordPiece)
     """
     words, word_scores = [], []
     cur_word, cur_scores = "", []
+    wp_open = False   # WordPiece continuation (##)
+    bpe_open = False  # BPE continuation (@@)
 
     def flush():
-        nonlocal cur_word, cur_scores
+        nonlocal cur_word, cur_scores, wp_open, bpe_open
         if cur_word:
-            # strip any lingering artifacts in the completed word
             w = cur_word.replace("@@", "")
             if w:
                 words.append(w)
                 word_scores.append(max(cur_scores) if cur_scores else 0.0)
         cur_word, cur_scores = "", []
+        wp_open = False
+        bpe_open = False
 
     for tok, s in zip(tokens, scores):
         if tok in {"<s>", "</s>", "[CLS]", "[SEP]", "[PAD]"}:
             continue
+        s = float(s)
 
-        # BERT continuation: ##piece
+        # Case 1: WordPiece continuation (##piece)
         if tok.startswith("##"):
             piece = tok[2:]
-            cur_word += piece
-            cur_scores.append(float(s))
+            if not cur_word:
+                cur_word = piece
+            else:
+                cur_word += piece
+            cur_scores.append(s)
+            wp_open = True
+            bpe_open = False
             continue
 
-        # RoBERTa/BERTweet new word marker: Ġword
+        # Case 2: RoBERTa/BERTweet new word marker (Ġword)
         if tok.startswith("Ġ"):
-            # starting a new word -> flush previous
             flush()
-            piece = tok[1:]  # drop Ġ
-            # handle empty (rare)
+            piece = tok[1:]
             if piece:
                 cur_word = piece
-                cur_scores = [float(s)]
+                cur_scores = [s]
             continue
 
-        # BPE suffix style: may end with '@@' meaning "continue with next token"
+        # Case 3: BPE suffix (wor@@)
         if tok.endswith("@@"):
-            # start or continue the current word
-            cur_word += tok[:-2]  # drop @@
-            cur_scores.append(float(s))
+            piece = tok[:-2]
+            if not cur_word:
+                cur_word = piece
+            else:
+                cur_word += piece
+            cur_scores.append(s)
+            bpe_open = True
+            wp_open = False
             continue
 
-        # plain token (no markers)
-        if cur_word:
-            # if we're in the middle of a word, continue it
+        # Case 4: plain token
+        if wp_open or bpe_open:
+            # we were in a continuation -> this plain token finishes the word
             cur_word += tok
-            cur_scores.append(float(s))
+            cur_scores.append(s)
+            flush()
         else:
-            # start a new word
+            # start a brand-new word
+            flush()
             cur_word = tok
-            cur_scores = [float(s)]
+            cur_scores = [s]
 
-    # flush tail
     flush()
 
-    # remove punctuation-only or empty artifacts
-    cleaned = []
-    for w, sc in zip(words, word_scores):
-        ww = w.strip()
-        if not ww:
-            continue
-        cleaned.append((ww, sc))
+    # final cleanup: remove empties
+    cleaned = [(w.strip(), sc) for (w, sc) in zip(words, word_scores) if w.strip()]
     return cleaned
 
-def top_k_contributors(tokens, scores, k=5, min_score=0.06, content_only=True):
+
+def top_k_contributors(tokens, scores, k=3, min_score=0.07, content_only=True):
     """
-    Returns top-k (word, score) after aggregation, desc by score.
-    content_only=True removes simple stopwords and 1-char tokens unless high score.
+    Returns top-k (word, score) after aggregation.
+    Filters stopwords (unless extremely salient) and very tiny tokens.
     """
     agg = _aggregate_word_scores(tokens, scores)
     out = []
     for w, sc in agg:
         lw = w.lower()
-        if content_only and (lw in STOPWORDS or (len(lw) == 1 and sc < 0.15)):
+        if content_only and (lw in STOPWORDS or (len(lw) == 1 and sc < 0.2)):
             continue
-        # final display cleanup (defensive)
-        w_disp = w.replace("Ġ", "").replace("@@", "")
-        out.append((w_disp, sc))
+        out.append((w, sc))
     out.sort(key=lambda x: x[1], reverse=True)
     return out[:k]
 
+
 def rationale_sentence(label, top_words):
-    """Human-friendly one-liner."""
     if not top_words:
         return f"The model predicted **{label}**."
-    # prefer 3 terms if available
-    words = ", ".join([w for w, _ in top_words[:3]])
-    return f"The model predicted **{label}** mainly due to: *{words}*."
+    terms = ", ".join([w for w, _ in top_words[:3]])
+    return f"The model predicted **{label}** mainly due to: *{terms}*."
+
+
+def render_chips(pairs):
+    """Nice inline chips for top words."""
+    if not pairs:
+        return ""
+    chips = []
+    for w, sc in pairs:
+        chips.append(
+            f"<span style='display:inline-block; margin:2px; padding:2px 8px; "
+            f"border-radius:999px; background:#183c3c; border:1px solid #256b6b; "
+            f"font-size:0.9rem;'>{w} <span style='opacity:.7;'>({sc:.2f})</span></span>"
+        )
+    return "<div>" + " ".join(chips) + "</div>"
 
 def drop_word_once(text, word):
     # remove one occurrence case-insensitively (simple heuristic)
@@ -591,7 +613,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-bk = backbone_choice.lower()  # "bertweet" or "distilroberta"
+bk = backbone_choice.lower() 
 
 # Reload models when backbone changes
 if 'current_backbone' not in st.session_state:
@@ -654,10 +676,10 @@ with tab1:
                     # Sentiment
                     s_tokens = s_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
                     s_scores = attribution_scores(s_mdl, s_tok, s_enc, SENTIMENT_LABELS.index(s_label), real_ig_toggle and USE_CAPTUM)
-                    s_top = top_k_contributors(s_tokens, s_scores, k=5)
+                    s_top = top_k_contributors(s_tokens, s_scores, k=3)
                     st.write(rationale_sentence(s_label, s_top))
                     if s_top:
-                        st.write("Top words:", "  ".join([f"`{w}` ({sc:.2f})" for w, sc in s_top[:5]]))
+                        st.markdown(render_chips(s_top), unsafe_allow_html=True)
                         cf_text = drop_word_once(txt, s_top[0][0])
                         cf_label, cf_conf, _, _ = predict_single(s_mdl, s_tok, cf_text, SENTIMENT_LABELS)
                         st.caption(f"Counterfactual: removing `{s_top[0][0]}` → {cf_label} {cf_conf:.3f} (was {s_label} {s_conf:.3f})")
@@ -665,10 +687,10 @@ with tab1:
                     # Emotion
                     e_tokens = e_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
                     e_scores = attribution_scores(e_mdl, e_tok, e_enc, EMOTION_LABELS.index(e_label), real_ig_toggle and USE_CAPTUM)
-                    e_top = top_k_contributors(e_tokens, e_scores, k=5)
+                    e_top = top_k_contributors(e_tokens, e_scores, k=3)
                     st.write(rationale_sentence(e_label, e_top))
                     if e_top:
-                        st.write("Top words:", "  ".join([f"`{w}` ({sc:.2f})" for w, sc in e_top[:5]]))
+                        st.markdown(render_chips(e_top), unsafe_allow_html=True)
                         cf_text2 = drop_word_once(txt, e_top[0][0])
                         cf_label2, cf_conf2, _, _ = predict_single(e_mdl, e_tok, cf_text2, EMOTION_LABELS)
                         st.caption(f"Counterfactual: removing `{e_top[0][0]}` → {cf_label2} {cf_conf2:.3f} (was {e_label} {e_conf:.3f})")
@@ -714,10 +736,10 @@ with tab1:
                     # Sentiment
                     s_scores = attribution_scores(mtl_mdl, mtl_tok, s_enc, SENTIMENT_LABELS.index(s_label), real_ig_toggle, head="sent")
                     s_tokens = mtl_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
-                    s_top = top_k_contributors(s_tokens, s_scores, k=5)
+                    s_top = top_k_contributors(s_tokens, s_scores, k=3)
                     st.write(rationale_sentence(s_label, s_top))
                     if s_top:
-                        st.write("Top words:", "  ".join([f"`{w}` ({sc:.2f})" for w, sc in s_top[:5]]))
+                        st.markdown(render_chips(s_top), unsafe_allow_html=True)
                         cf_text = drop_word_once(txt, s_top[0][0])
                         cf_s_label, cf_s_conf, *_ = predict_mtl(mtl_mdl, mtl_tok, cf_text)[:2]
                         st.caption(f"Counterfactual: removing `{s_top[0][0]}` → {cf_s_label} {cf_s_conf:.3f} (was {s_label} {s_conf:.3f})")
@@ -725,10 +747,10 @@ with tab1:
                     # Emotion
                     e_scores = attribution_scores(mtl_mdl, mtl_tok, e_enc, EMOTION_LABELS.index(e_label), real_ig_toggle, head="emo")
                     e_tokens = mtl_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
-                    e_top = top_k_contributors(e_tokens, e_scores, k=5)
+                    e_top = top_k_contributors(e_tokens, e_scores, k=3)
                     st.write(rationale_sentence(e_label, e_top))
                     if e_top:
-                        st.write("Top words:", "  ".join([f"`{w}` ({sc:.2f})" for w, sc in e_top[:5]]))
+                        st.markdown(render_chips(e_top), unsafe_allow_html=True)
                         cf_text2 = drop_word_once(txt, e_top[0][0])
                         _sL, _sC, _sp, _se, cf_e_label, cf_e_conf, *_ = predict_mtl(mtl_mdl, mtl_tok, cf_text2)
                         st.caption(f"Counterfactual: removing `{e_top[0][0]}` → {cf_e_label} {cf_e_conf:.3f} (was {e_label} {e_conf:.3f})")
