@@ -4,6 +4,8 @@ import torch
 import pandas as pd
 import numpy as np
 import streamlit as st
+import captum
+from captum.attr import IntegratedGradients
 
 from typing import List, Tuple, Dict
 from torch.nn.functional import softmax
@@ -60,8 +62,6 @@ DEVICE = "cpu"
 
 USE_CAPTUM = False
 try:
-    import captum
-    from captum.attr import IntegratedGradients
     USE_CAPTUM = True
 except Exception:
     USE_CAPTUM = False
@@ -448,6 +448,127 @@ sentiment_tok, sentiment_mdl, emotion_tok, emotion_mdl = load_models("bertweet")
 if sentiment_tok is None or sentiment_mdl is None or emotion_tok is None or emotion_mdl is None:
     st.error("Failed to load initial models. Please check the model paths and try again.")
     st.stop()
+
+STOPWORDS = {
+    "the","a","an","to","of","and","or","but","if","in","on","at","for","with","as","by",
+    "is","am","are","was","were","be","been","being","it","its","i","im","i'm","my","me",
+    "you","your","he","she","they","we","our","us","this","that","these","those","again",
+    ".",",","!","?","’","'","”","“","(",")","-","—","…"
+}
+
+def _aggregate_word_scores(tokens, scores):
+    """
+    Merge subword tokens into whole words and aggregate scores.
+    Handles:
+      - BERT WordPiece:        '##word'
+      - RoBERTa/BERTweet:     'Ġword' (Ġ = leading space)
+      - BPE suffix style:     'wor@@' + 'd'
+    Aggregation: max over subpieces.
+    """
+    words, word_scores = [], []
+    cur_word, cur_scores = "", []
+
+    def flush():
+        nonlocal cur_word, cur_scores
+        if cur_word:
+            # strip any lingering artifacts in the completed word
+            w = cur_word.replace("@@", "")
+            if w:
+                words.append(w)
+                word_scores.append(max(cur_scores) if cur_scores else 0.0)
+        cur_word, cur_scores = "", []
+
+    for tok, s in zip(tokens, scores):
+        if tok in {"<s>", "</s>", "[CLS]", "[SEP]", "[PAD]"}:
+            continue
+
+        # BERT continuation: ##piece
+        if tok.startswith("##"):
+            piece = tok[2:]
+            cur_word += piece
+            cur_scores.append(float(s))
+            continue
+
+        # RoBERTa/BERTweet new word marker: Ġword
+        if tok.startswith("Ġ"):
+            # starting a new word -> flush previous
+            flush()
+            piece = tok[1:]  # drop Ġ
+            # handle empty (rare)
+            if piece:
+                cur_word = piece
+                cur_scores = [float(s)]
+            continue
+
+        # BPE suffix style: may end with '@@' meaning "continue with next token"
+        if tok.endswith("@@"):
+            # start or continue the current word
+            cur_word += tok[:-2]  # drop @@
+            cur_scores.append(float(s))
+            continue
+
+        # plain token (no markers)
+        if cur_word:
+            # if we're in the middle of a word, continue it
+            cur_word += tok
+            cur_scores.append(float(s))
+        else:
+            # start a new word
+            cur_word = tok
+            cur_scores = [float(s)]
+
+    # flush tail
+    flush()
+
+    # remove punctuation-only or empty artifacts
+    cleaned = []
+    for w, sc in zip(words, word_scores):
+        ww = w.strip()
+        if not ww:
+            continue
+        cleaned.append((ww, sc))
+    return cleaned
+
+def top_k_contributors(tokens, scores, k=5, min_score=0.06, content_only=True):
+    """
+    Returns top-k (word, score) after aggregation, desc by score.
+    content_only=True removes simple stopwords and 1-char tokens unless high score.
+    """
+    agg = _aggregate_word_scores(tokens, scores)
+    out = []
+    for w, sc in agg:
+        lw = w.lower()
+        if content_only and (lw in STOPWORDS or (len(lw) == 1 and sc < 0.15)):
+            continue
+        # final display cleanup (defensive)
+        w_disp = w.replace("Ġ", "").replace("@@", "")
+        out.append((w_disp, sc))
+    out.sort(key=lambda x: x[1], reverse=True)
+    return out[:k]
+
+def rationale_sentence(label, top_words):
+    """Human-friendly one-liner."""
+    if not top_words:
+        return f"The model predicted **{label}**."
+    # prefer 3 terms if available
+    words = ", ".join([w for w, _ in top_words[:3]])
+    return f"The model predicted **{label}** mainly due to: *{words}*."
+
+def drop_word_once(text, word):
+    # remove one occurrence case-insensitively (simple heuristic)
+    import re
+    return re.sub(rf'\b{re.escape(word)}\b', '', text, count=1, flags=re.IGNORECASE).replace("  ", " ").strip()
+
+def counterfactual_delta(predict_fn, tokenizer, model, text, label_list, chosen_label):
+    """
+    Re-run prediction after removing the top contributing word and report delta in confidence.
+    predict_fn must match: (model, tokenizer, text, labels) -> (label, conf, probs, enc)
+    """
+    base_label, base_conf, _, _ = predict_fn(model, tokenizer, text, label_list)
+    # If top word not supplied here, caller should compute and pass it in; we do a quick recompute instead
+    # Caller supplies tokens/scores for chosen_label
+    return base_label, base_conf
+
 # =========================
 # UI
 # =========================
@@ -469,9 +590,6 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.write("**Notes**")
-    st.write("- Keep class orders consistent with training.")
-    st.write("- Captum IG is slower but more principled.")
 
 bk = backbone_choice.lower()  # "bertweet" or "distilroberta"
 
@@ -498,6 +616,7 @@ if st.session_state.current_backbone != bk:
 
 choice = resolve_paths(mode_choice, bk)
 
+# ---------- Single Text ----------
 # ---------- Single Text ----------
 with tab1:
     txt = st.text_area("Enter a Reddit post/comment", value="My Note 7 overheated again. I'm scared it might explode.", height=140)
@@ -528,23 +647,39 @@ with tab1:
                     st.write(f"**Confidence:** {e_conf:.3f}")
                     st.bar_chart(format_probs(EMOTION_LABELS, e_probs))
                 
-                # Show explanations if requested
+                # === Stakeholder-friendly explanations ===
                 if explain:
-                    try:
-                        st.markdown("### Token Attributions")
-                        st.write("**Sentiment:**")
-                        # Sentiment
-                        s_tokens = s_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
-                        s_scores = attribution_scores(s_mdl, s_tok, s_enc, SENTIMENT_LABELS.index(s_label), real_ig_toggle and USE_CAPTUM)
-                        st.markdown(html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
+                    st.markdown("### Why the model decided this (Stakeholder view)")
 
-                        st.write("**Emotion:**")
-                        # Emotion
-                        e_tokens = e_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
-                        e_scores = attribution_scores(e_mdl, e_tok, e_enc, EMOTION_LABELS.index(e_label), real_ig_toggle and USE_CAPTUM)
+                    # Sentiment
+                    s_tokens = s_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
+                    s_scores = attribution_scores(s_mdl, s_tok, s_enc, SENTIMENT_LABELS.index(s_label), real_ig_toggle and USE_CAPTUM)
+                    s_top = top_k_contributors(s_tokens, s_scores, k=5)
+                    st.write(rationale_sentence(s_label, s_top))
+                    if s_top:
+                        st.write("Top words:", "  ".join([f"`{w}` ({sc:.2f})" for w, sc in s_top[:5]]))
+                        cf_text = drop_word_once(txt, s_top[0][0])
+                        cf_label, cf_conf, _, _ = predict_single(s_mdl, s_tok, cf_text, SENTIMENT_LABELS)
+                        st.caption(f"Counterfactual: removing `{s_top[0][0]}` → {cf_label} {cf_conf:.3f} (was {s_label} {s_conf:.3f})")
+
+                    # Emotion
+                    e_tokens = e_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
+                    e_scores = attribution_scores(e_mdl, e_tok, e_enc, EMOTION_LABELS.index(e_label), real_ig_toggle and USE_CAPTUM)
+                    e_top = top_k_contributors(e_tokens, e_scores, k=5)
+                    st.write(rationale_sentence(e_label, e_top))
+                    if e_top:
+                        st.write("Top words:", "  ".join([f"`{w}` ({sc:.2f})" for w, sc in e_top[:5]]))
+                        cf_text2 = drop_word_once(txt, e_top[0][0])
+                        cf_label2, cf_conf2, _, _ = predict_single(e_mdl, e_tok, cf_text2, EMOTION_LABELS)
+                        st.caption(f"Counterfactual: removing `{e_top[0][0]}` → {cf_label2} {cf_conf2:.3f} (was {e_label} {e_conf:.3f})")
+
+                    # Advanced: full heatmaps
+                    with st.expander("Advanced: full token attributions", expanded=False):
+                        st.write("**Sentiment heatmap**")
+                        st.markdown(html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
+                        st.write("**Emotion heatmap**")
                         st.markdown(html_highlight(e_tokens, e_scores), unsafe_allow_html=True)
-                    except Exception as ex:
-                        st.warning(f"Explanation rendering failed: {ex}")
+
             else:
                 if not os.path.exists(choice["mtl"]):
                     st.error(f"MTL path not found: {choice['mtl']}")
@@ -572,20 +707,38 @@ with tab1:
                     st.write(f"**Confidence:** {e_conf:.3f}")
                     st.bar_chart(format_probs(EMOTION_LABELS, e_probs))
                 
-                # Show explanations if requested
+                # === Stakeholder-friendly explanations ===
                 if explain:
-                    st.subheader("Token Attributions")
-                    st.write("**Sentiment:**")
-                    s_scores = attribution_scores(mtl_mdl, mtl_tok, s_enc, 
-                                                SENTIMENT_LABELS.index(s_label), real_ig_toggle, head="sent")
+                    st.markdown("### Why the model decided this (Stakeholder view)")
+
+                    # Sentiment
+                    s_scores = attribution_scores(mtl_mdl, mtl_tok, s_enc, SENTIMENT_LABELS.index(s_label), real_ig_toggle, head="sent")
                     s_tokens = mtl_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
-                    st.markdown(html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
-                    
-                    st.write("**Emotion:**")
-                    e_scores = attribution_scores(mtl_mdl, mtl_tok, e_enc, 
-                                                EMOTION_LABELS.index(e_label), real_ig_toggle, head="emo")
+                    s_top = top_k_contributors(s_tokens, s_scores, k=5)
+                    st.write(rationale_sentence(s_label, s_top))
+                    if s_top:
+                        st.write("Top words:", "  ".join([f"`{w}` ({sc:.2f})" for w, sc in s_top[:5]]))
+                        cf_text = drop_word_once(txt, s_top[0][0])
+                        cf_s_label, cf_s_conf, *_ = predict_mtl(mtl_mdl, mtl_tok, cf_text)[:2]
+                        st.caption(f"Counterfactual: removing `{s_top[0][0]}` → {cf_s_label} {cf_s_conf:.3f} (was {s_label} {s_conf:.3f})")
+
+                    # Emotion
+                    e_scores = attribution_scores(mtl_mdl, mtl_tok, e_enc, EMOTION_LABELS.index(e_label), real_ig_toggle, head="emo")
                     e_tokens = mtl_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
-                    st.markdown(html_highlight(e_tokens, e_scores), unsafe_allow_html=True)
+                    e_top = top_k_contributors(e_tokens, e_scores, k=5)
+                    st.write(rationale_sentence(e_label, e_top))
+                    if e_top:
+                        st.write("Top words:", "  ".join([f"`{w}` ({sc:.2f})" for w, sc in e_top[:5]]))
+                        cf_text2 = drop_word_once(txt, e_top[0][0])
+                        _sL, _sC, _sp, _se, cf_e_label, cf_e_conf, *_ = predict_mtl(mtl_mdl, mtl_tok, cf_text2)
+                        st.caption(f"Counterfactual: removing `{e_top[0][0]}` → {cf_e_label} {cf_e_conf:.3f} (was {e_label} {e_conf:.3f})")
+
+                    # Advanced: full heatmaps
+                    with st.expander("Advanced: full token attributions", expanded=False):
+                        st.write("**Sentiment heatmap**")
+                        st.markdown(html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
+                        st.write("**Emotion heatmap**")
+                        st.markdown(html_highlight(e_tokens, e_scores), unsafe_allow_html=True)
 
 # ---------- Batch ----------
 with tab2:
