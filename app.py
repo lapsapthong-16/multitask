@@ -66,38 +66,6 @@ try:
 except Exception:
     USE_CAPTUM = False
 
-@st.cache_resource(show_spinner=True)
-def load_models(backbone="bertweet"):
-    sentiment_path = os.path.join(SENTIMENT_BASE, backbone)
-    emotion_path = os.path.join(EMOTION_BASE, backbone)
-    
-    try:
-        sent_tok = AutoTokenizer.from_pretrained(sentiment_path, use_fast=True)
-        sent_mdl = AutoModelForSequenceClassification.from_pretrained(sentiment_path)
-        sent_mdl.eval().to(DEVICE)
-    except Exception as e:
-        st.error(f"Failed to load sentiment model from {sentiment_path}: {str(e)}")
-        return None, None, None, None
-    
-    # Load emotion model
-    try:
-        emo_tok = AutoTokenizer.from_pretrained(emotion_path, use_fast=True)
-        emo_mdl = AutoModelForSequenceClassification.from_pretrained(emotion_path)
-        emo_mdl.eval().to(DEVICE)
-    except Exception as e:
-        st.error(f"Failed to load emotion model from {emotion_path}: {str(e)}")
-        return None, None, None, None
-
-    return sent_tok, sent_mdl, emo_tok, emo_mdl
-
-# Initialize with default backbone
-sentiment_tok, sentiment_mdl, emotion_tok, emotion_mdl = load_models("bertweet")
-
-# Check if models loaded successfully
-if sentiment_tok is None or sentiment_mdl is None or emotion_tok is None or emotion_mdl is None:
-    st.error("Failed to load initial models. Please check the model paths and try again.")
-    st.stop()
-
 # Check MTL availability
 mtl_available = False
 mtl_tok, mtl_mdl = None, None
@@ -124,6 +92,23 @@ def reload_mtl_for_backbone(backbone):
     else:
         mtl_tok, mtl_mdl = None, None
         mtl_available = False
+
+@st.cache_resource(show_spinner=True)
+def load_models(backbone="bertweet"):
+    sentiment_path = os.path.join(SENTIMENT_BASE, backbone)
+    emotion_path = os.path.join(EMOTION_BASE, backbone)
+    
+    # Load sentiment model
+    sent_tok, sent_mdl = load_single_task(sentiment_path)
+    if sent_tok is None or sent_mdl is None:
+        return None, None, None, None
+    
+    # Load emotion model
+    emo_tok, emo_mdl = load_single_task(emotion_path)
+    if emo_tok is None or emo_mdl is None:
+        return None, None, None, None
+
+    return sent_tok, sent_mdl, emo_tok, emo_mdl
 
 # =========================
 # INFERENCE HELPERS
@@ -277,6 +262,11 @@ def attribution_scores(model, tokenizer, enc, target_idx: int, real_ig: bool, he
             # Standard model returns object with .logits attribute
             logits = outputs.logits.squeeze(0)
             
+        # Ensure target_idx is within bounds
+        if target_idx >= logits.shape[0]:
+            st.warning(f"Target index {target_idx} is out of bounds for logits shape {logits.shape}. Using index 0.")
+            target_idx = 0
+            
         logits[target_idx].backward()
         grads = input_embeds.grad.detach()  # [1, seq, hid]
         scores = grads.norm(dim=-1).squeeze(0).cpu().numpy()
@@ -317,8 +307,56 @@ def resolve_paths(mode: str, bk: str):
 def load_single_task(model_path):
     """Load a single task model from the given path"""
     try:
+        # Check if this is a custom BERTweet model
+        config_path = os.path.join(model_path, "config.json")
+        is_custom_bertweet = False
+        if os.path.exists(config_path):
+            import json
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+                # Check if it's a custom BERTweet model that needs special handling
+                if config.get("model_name") == "vinai/bertweet-base" and "num_classes" in config:
+                    is_custom_bertweet = True
+        
         tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True)
-        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        
+        if is_custom_bertweet:
+            # For custom BERTweet models, we need to load them differently
+            # First try standard loading
+            try:
+                model = AutoModelForSequenceClassification.from_pretrained(model_path)
+            except Exception:
+                # If standard loading fails, create a model from vinai/bertweet-base and load the state dict
+                from transformers import RobertaForSequenceClassification, RobertaConfig
+                
+                # Create config based on the saved config
+                with open(config_path, 'r') as f:
+                    saved_config = json.load(f)
+                
+                # Create a proper RobertaConfig
+                model_config = RobertaConfig(
+                    vocab_size=saved_config.get("vocab_size", 64002),
+                    hidden_size=saved_config.get("hidden_size", 768),
+                    num_hidden_layers=saved_config.get("num_hidden_layers", 12),
+                    num_attention_heads=saved_config.get("num_attention_heads", 12),
+                    intermediate_size=saved_config.get("intermediate_size", 3072),
+                    max_position_embeddings=saved_config.get("max_position_embeddings", 130),
+                    num_labels=saved_config.get("num_classes", 3),
+                    pad_token_id=saved_config.get("pad_token_id", 1),
+                    bos_token_id=saved_config.get("bos_token_id", 0),
+                    eos_token_id=saved_config.get("eos_token_id", 2)
+                )
+                
+                model = RobertaForSequenceClassification(model_config)
+                
+                # Load the state dict
+                model_file = os.path.join(model_path, "pytorch_model.bin")
+                if os.path.exists(model_file):
+                    state_dict = torch.load(model_file, map_location=DEVICE)
+                    model.load_state_dict(state_dict, strict=False)
+        else:
+            model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        
         model.eval().to(DEVICE)
         return tokenizer, model
     except Exception as e:
@@ -403,6 +441,13 @@ def load_mtl_dir(mtl_path):
         st.error(f"Failed to load MTL model from {mtl_path}: {str(e)}")
         return None, None
 
+# Initialize with default backbone
+sentiment_tok, sentiment_mdl, emotion_tok, emotion_mdl = load_models("bertweet")
+
+# Check if models loaded successfully
+if sentiment_tok is None or sentiment_mdl is None or emotion_tok is None or emotion_mdl is None:
+    st.error("Failed to load initial models. Please check the model paths and try again.")
+    st.stop()
 # =========================
 # UI
 # =========================
@@ -487,14 +532,16 @@ with tab1:
                 if explain:
                     try:
                         st.markdown("### Token Attributions")
+                        st.write("**Sentiment:**")
                         # Sentiment
                         s_tokens = s_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
-                        s_scores = attribution_scores(s_mdl_or_mtl, s_tok, s_enc, SENTIMENT_LABELS.index(s_label), real_ig_toggle and USE_CAPTUM, head="sent" if is_mtl else None)
+                        s_scores = attribution_scores(s_mdl, s_tok, s_enc, SENTIMENT_LABELS.index(s_label), real_ig_toggle and USE_CAPTUM)
                         st.markdown(html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
 
+                        st.write("**Emotion:**")
                         # Emotion
                         e_tokens = e_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
-                        e_scores = attribution_scores(e_mdl_or_mtl, e_tok, e_enc, EMOTION_LABELS.index(e_label), real_ig_toggle and USE_CAPTUM, head="emo" if is_mtl else None)
+                        e_scores = attribution_scores(e_mdl, e_tok, e_enc, EMOTION_LABELS.index(e_label), real_ig_toggle and USE_CAPTUM)
                         st.markdown(html_highlight(e_tokens, e_scores), unsafe_allow_html=True)
                     except Exception as ex:
                         st.warning(f"Explanation rendering failed: {ex}")
@@ -530,13 +577,13 @@ with tab1:
                     st.subheader("Token Attributions")
                     st.write("**Sentiment:**")
                     s_scores = attribution_scores(mtl_mdl, mtl_tok, s_enc, 
-                                                SENTIMENT_LABELS.index(s_label), real_ig_toggle)
+                                                SENTIMENT_LABELS.index(s_label), real_ig_toggle, head="sent")
                     s_tokens = mtl_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
                     st.markdown(html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
                     
                     st.write("**Emotion:**")
                     e_scores = attribution_scores(mtl_mdl, mtl_tok, e_enc, 
-                                                EMOTION_LABELS.index(e_label), real_ig_toggle)
+                                                EMOTION_LABELS.index(e_label), real_ig_toggle, head="emo")
                     e_tokens = mtl_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
                     st.markdown(html_highlight(e_tokens, e_scores), unsafe_allow_html=True)
 
