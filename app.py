@@ -332,10 +332,7 @@ def check_mtl_availability(backbone):
     model_files = [f for f in os.listdir(mtl_path) if f.endswith('.pt') or f.endswith('.safetensors') or f.endswith('.bin')]
     return len(model_files) > 0
 
-if check_mtl_availability("bertweet"):
-    mtl_tok, mtl_mdl = load_mtl()
-    if mtl_tok is not None and mtl_mdl is not None:
-        mtl_available = True
+
 
 def reload_mtl_for_backbone(backbone):
     global mtl_tok, mtl_mdl, mtl_available
@@ -617,85 +614,133 @@ def load_single_task(model_path):
         return None, None
 
 def load_mtl_dir(mtl_path):
-    """Load MTL model from the given path"""
+    """
+    Load an MTL (sentiment+emotion) model from `mtl_path`.
+
+    Supports:
+      A) single 9-label head (3+6) saved as a standard HF classifier
+      B) custom multi-head: encoder + sent_head + emo_head (state_dict)
+
+    Tokenizer fallback order:
+      1) tokenizer files in `mtl_path`
+      2) models/mtl/base_tok
+      3) HF base: distilroberta-base or vinai/bertweet-base
+    """
     try:
-        # Check if the path exists and contains required files
         if not os.path.exists(mtl_path):
             return None, None
-        
-        # Load tokenizer
-        tok = AutoTokenizer.from_pretrained(mtl_path, use_fast=True)
-        
-        # Check what type of model we have based on the files present
-        has_pytorch_model_bin = os.path.exists(os.path.join(mtl_path, "pytorch_model.bin"))
-        has_custom_components = os.path.exists(os.path.join(mtl_path, "custom_components.pt"))
+
+        is_distil = "distilroberta" in mtl_path.lower()
+        base_name = "distilroberta-base" if is_distil else "vinai/bertweet-base"
+
+        # --- tokenizer with fallbacks (local only) ---
+        tok = None
+        try:
+            tok = AutoTokenizer.from_pretrained(mtl_path, use_fast=True)
+        except Exception:
+            base_tok_dir = os.path.join(MTL_DIR, "base_tok")
+            if os.path.isdir(base_tok_dir):
+                try:
+                    tok = AutoTokenizer.from_pretrained(base_tok_dir, use_fast=True)
+                except Exception:
+                    tok = None
+            if tok is None:
+                st.error(f"Could not load tokenizer from {mtl_path} or {base_tok_dir}. Please ensure tokenizer files are present locally.")
+                return None, None
+
+        has_pt_bin      = os.path.exists(os.path.join(mtl_path, "pytorch_model.bin"))
         has_safetensors = os.path.exists(os.path.join(mtl_path, "model.safetensors"))
-        
-        # Check if this is a custom model type that won't work with standard loading
-        config_path = os.path.join(mtl_path, "config.json")
-        is_custom_model_type = False
-        if os.path.exists(config_path):
-            import json
-            with open(config_path, 'r') as f:
-                config = json.load(f)
-                model_type = config.get("model_type", "")
-                # Check for custom model types that Transformers doesn't recognize
-                if model_type in ["BERTweetMultiTaskTransformer"]:
-                    is_custom_model_type = True
-        
-        if has_pytorch_model_bin and not has_custom_components:
-            # BERTweet case: Custom MTL model saved as pytorch_model.bin
-            if is_custom_model_type:
-                # Skip standard loading for known custom types
-                mdl = SimpleMTL("vinai/bertweet-base")
-                state_dict = torch.load(os.path.join(mtl_path, "pytorch_model.bin"), map_location=DEVICE)
-                mdl.load_state_dict(state_dict, strict=False)
-            else:
-                try:
-                    # Try standard loading for recognized types
-                    mdl = AutoModelForSequenceClassification.from_pretrained(mtl_path)
-                except Exception as e:
-                    # Fallback to SimpleMTL
-                    mdl = SimpleMTL("vinai/bertweet-base")
-                    state_dict = torch.load(os.path.join(mtl_path, "pytorch_model.bin"), map_location=DEVICE)
-                    mdl.load_state_dict(state_dict, strict=False)
-                
-        elif has_custom_components and has_safetensors:
-            # DistilRoBERTa case: Base model + custom components
+        cfg_path        = os.path.join(mtl_path, "config.json")
+
+        def _is_single_head_9label():
             try:
-                # Load the base model first
-                mdl = AutoModelForSequenceClassification.from_pretrained(mtl_path)
-            except:
-                # Fallback: create SimpleMTL and load components
-                mdl = SimpleMTL("distilroberta-base")
-                # Load custom components if they exist
-                custom_components_path = os.path.join(mtl_path, "custom_components.pt")
-                if os.path.exists(custom_components_path):
-                    custom_state = torch.load(custom_components_path, map_location=DEVICE)
-                    mdl.load_state_dict(custom_state, strict=False)
-        else:
-            # Fallback: try standard loading
-            if is_custom_model_type:
-                # Skip standard loading for custom types
-                base_model = "vinai/bertweet-base" if "bertweet" in mtl_path.lower() else "distilroberta-base"
-                mdl = SimpleMTL(base_model)
-            else:
-                try:
-                    mdl = AutoModelForSequenceClassification.from_pretrained(mtl_path)
-                except:
-                    # Determine base model from path
-                    base_model = "vinai/bertweet-base" if "bertweet" in mtl_path.lower() else "distilroberta-base"
-                    mdl = SimpleMTL(base_model)
+                import json
+                with open(cfg_path, "r") as f:
+                    cfg = json.load(f)
+                return int(cfg.get("num_labels", -1)) == 9
+            except Exception:
+                return False
+
+        # --- Case A: single 9-label head ---
+        if (has_pt_bin or has_safetensors) and _is_single_head_9label():
+            mdl = AutoModelForSequenceClassification.from_pretrained(mtl_path)
+            mdl.eval().to(DEVICE)
+            return tok, mdl
+
+        # --- Case B: custom multi-head state_dict ---
+        candidate_files = []
+        for fname in ["custom_components.pt", "mtl_model.pt", "state_dict.pt", "pytorch_model.bin"]:
+            fpath = os.path.join(mtl_path, fname)
+            if os.path.exists(fpath):
+                candidate_files.append(fpath)
+
+        if candidate_files:
+            # Try to create SimpleMTL using the local model directory for the encoder
+            try:
+                mdl = SimpleMTL(mtl_path, num_sent=3, num_emo=6)
+            except Exception:
+                # Fall back to using HF base name if local loading fails
+                mdl = SimpleMTL(base_name, num_sent=3, num_emo=6)
                 
-        mdl.eval().to(DEVICE)
-        return tok, mdl
-        
+            for f in candidate_files:
+                try:
+                    # Try with weights_only=True first (safer)
+                    try:
+                        sd = torch.load(f, map_location=DEVICE, weights_only=True)
+                    except Exception:
+                        # Fall back to weights_only=False for older checkpoint formats
+                        sd = torch.load(f, map_location=DEVICE, weights_only=False)
+                    
+                    mdl.load_state_dict(sd, strict=False)  # tolerate partial/nested keys
+                    mdl.eval().to(DEVICE)
+                    return tok, mdl
+                except Exception as e:
+                    # Skip files that can't be loaded (e.g., custom classes not available)
+                    continue
+
+        # --- last resort: try HF classifier anyway ---
+        if has_pt_bin or has_safetensors:
+            try:
+                # For MTL models, we need 9 labels (3 sentiment + 6 emotion)
+                # First try loading with the existing config
+                mdl = AutoModelForSequenceClassification.from_pretrained(mtl_path)
+                
+                # If the model doesn't have 9 labels, create one with the right number
+                if mdl.config.num_labels != 9:
+                    from transformers import AutoConfig
+                    config = AutoConfig.from_pretrained(mtl_path)
+                    config.num_labels = 9
+                    mdl = AutoModelForSequenceClassification.from_pretrained(
+                        mtl_path, config=config, ignore_mismatched_sizes=True
+                    )
+                
+                mdl.eval().to(DEVICE)
+                return tok, mdl
+            except Exception as e:
+                st.warning(f"Could not load as HF classifier: {str(e)}")
+                pass
+
+        st.error(f"Could not load a valid MTL checkpoint from: {mtl_path}")
+        return None, None
+
     except Exception as e:
         st.error(f"Failed to load MTL model from {mtl_path}: {str(e)}")
         return None, None
 
 # Initialize with default backbone
 sentiment_tok, sentiment_mdl, emotion_tok, emotion_mdl = load_models("bertweet")
+
+def ensure_mtl(backbone: str):
+    """Load MTL for the selected backbone (e.g., bertweet, distilroberta)."""
+    tok, mdl = load_mtl_dir(os.path.join(MTL_DIR, backbone))
+    ok = tok is not None and mdl is not None
+    return ok, tok, mdl
+
+# Initialize with default backbone
+sentiment_tok, sentiment_mdl, emotion_tok, emotion_mdl = load_models("bertweet")
+
+# NEW: also try MTL for the initial backbone
+mtl_available, mtl_tok, mtl_mdl = ensure_mtl("bertweet")
 
 # Check if models loaded successfully
 if sentiment_tok is None or sentiment_mdl is None or emotion_tok is None or emotion_mdl is None:
@@ -880,24 +925,16 @@ def create_result_card(label, confidence, probs, label_type="sentiment"):
     </div>
     """
     
-    return card_html
+    return card_html.strip()
 
 def create_explanation_chips(top_words):
-    """Create enhanced explanation chips"""
     if not top_words:
         return ""
-    
-    chips_html = '<div class="explanation-chips">'
+    parts = ['<div class="explanation-chips">']
     for word, score in top_words:
-        chips_html += f'''
-        <div class="chip">
-            {word}
-            <span class="chip-score">{score:.2f}</span>
-        </div>
-        '''
-    chips_html += '</div>'
-    
-    return chips_html
+        parts.append(f'<div class="chip">{word}<span class="chip-score">{score:.2f}</span></div>')
+    parts.append('</div>')
+    return "".join(parts)
 
 def enhanced_html_highlight(tokens: List[str], scores: List[float]) -> str:
     """Enhanced token highlighting with better styling"""
@@ -973,11 +1010,6 @@ with st.sidebar:
 
     st.markdown("### 🔍 Explanation Settings")
     explain = st.checkbox("Show AI explanations", value=True, help="Display token-level attributions")
-    real_ig_toggle = st.checkbox(
-        "Advanced explanations (Captum)",
-        value=False and USE_CAPTUM,
-        help="Use Integrated Gradients for more accurate explanations"
-    )
 
     st.markdown("---")
     
@@ -991,23 +1023,26 @@ with st.sidebar:
     # Quick stats
     st.markdown("### 📈 Quick Stats")
     st.metric("Supported Languages", "English")
-    st.metric("Model Accuracy", "~85%")
-    st.metric("Processing Speed", "< 1s")
+    st.metric("Processing Speed", "< 10s")
 
 bk = backbone_choice.lower().replace('bertweet', 'bertweet').replace('distilroberta', 'distilroberta')
 
-# Reload models when backbone changes
+if 'mtl_bootstrapped' not in st.session_state:
+    st.session_state.mtl_bootstrapped = True
+    mtl_available, mtl_tok, mtl_mdl = ensure_mtl(bk)
+
 if 'current_backbone' not in st.session_state:
     st.session_state.current_backbone = bk
+
 if st.session_state.current_backbone != bk:
     st.session_state.current_backbone = bk
     sentiment_tok, sentiment_mdl, emotion_tok, emotion_mdl = load_models(bk)
-    reload_mtl_for_backbone(bk)
+    mtl_available, mtl_tok, mtl_mdl = ensure_mtl(bk)
 
 choice = resolve_paths(mode_choice, bk)
 
 # Enhanced tabs
-tab1, tab2, tab3 = st.tabs(["🔍 Single Analysis", "📊 Batch Processing", "ℹ️ About"])
+tab1, tab2 = st.tabs(["🔍 Single Analysis", "ℹ️ About"])
 
 # ---------- Enhanced Single Text Tab ----------
 with tab1:
@@ -1064,7 +1099,7 @@ with tab1:
                     
                     # Sentiment explanation
                     s_tokens = s_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
-                    s_scores = attribution_scores(s_mdl, s_tok, s_enc, SENTIMENT_LABELS.index(s_label), real_ig_toggle and USE_CAPTUM)
+                    s_scores = attribution_scores(s_mdl, s_tok, s_enc, SENTIMENT_LABELS.index(s_label), False)
                     s_top = top_k_contributors(s_tokens, s_scores, k=3)
                     
                     st.markdown(f"### {SENTIMENT_EMOJIS[s_label]} Sentiment: {s_label}")
@@ -1080,7 +1115,7 @@ with tab1:
                     
                     # Emotion explanation
                     e_tokens = e_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
-                    e_scores = attribution_scores(e_mdl, e_tok, e_enc, EMOTION_LABELS.index(e_label), real_ig_toggle and USE_CAPTUM)
+                    e_scores = attribution_scores(e_mdl, e_tok, e_enc, EMOTION_LABELS.index(e_label), False)
                     e_top = top_k_contributors(e_tokens, e_scores, k=3)
                     
                     st.markdown(f"### {EMOTION_EMOJIS[e_label]} Emotion: {e_label}")
@@ -1110,50 +1145,75 @@ with tab1:
                             st.bar_chart(format_probs(EMOTION_LABELS, e_probs))
 
             else:
-                # MTL model logic with enhanced display (similar structure)
-                # ... (implement similar enhancements for MTL path)
-                pass
+                # --- Multi-task path ---
+                mtl_available, mtl_tok, mtl_mdl = ensure_mtl(bk)
+                if not mtl_available:
+                    st.error(f"❌ MTL model not found for backbone '{bk}'. Expected at: {os.path.join(MTL_DIR, bk)}")
+                    st.stop()
+
+                s_label, s_conf, s_probs, s_enc, e_label, e_conf, e_probs, e_enc = predict_mtl(
+                    mtl_mdl, mtl_tok, txt
+                )
+
+                st.markdown("## 📊 Analysis Results")
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown(create_result_card(s_label, s_conf, s_probs, "sentiment"), unsafe_allow_html=True)
+                with c2:
+                    st.markdown(create_result_card(e_label, e_conf, e_probs, "emotion"), unsafe_allow_html=True)
+
+                if explain:
+                    st.markdown("## 🔍 AI Explanation")
+                    st.markdown("*Understanding why the AI made these predictions!*")
+
+                    # Sentiment explanation
+                    s_tokens = mtl_tok.convert_ids_to_tokens(s_enc["input_ids"][0].cpu().tolist())
+                    s_scores = attribution_scores(mtl_mdl, mtl_tok, s_enc,
+                                                  SENTIMENT_LABELS.index(s_label),
+                                                  False, head="sent")
+                    s_top = top_k_contributors(s_tokens, s_scores, k=3)
+                    st.markdown(f"### {SENTIMENT_EMOJIS[s_label]} Sentiment: {s_label}")
+                    st.write(rationale_sentence(s_label, s_top))
+                    if s_top:
+                        st.markdown(create_explanation_chips(s_top), unsafe_allow_html=True)
+                        with st.expander("🔄 Counterfactual Analysis", expanded=False):
+                            cf_text = drop_word_once(txt, s_top[0][0])
+                            cf_s_label, cf_s_conf, _, _, _, _, _, _ = predict_mtl(mtl_mdl, mtl_tok, cf_text)
+                            st.info(f"If we remove **'{s_top[0][0]}'**: {SENTIMENT_EMOJIS.get(cf_s_label,'🤔')} {cf_s_label} ({cf_s_conf:.1%} confidence)")
+
+                    # Emotion explanation
+                    e_tokens = mtl_tok.convert_ids_to_tokens(e_enc["input_ids"][0].cpu().tolist())
+                    e_scores = attribution_scores(mtl_mdl, mtl_tok, e_enc,
+                                                  EMOTION_LABELS.index(e_label),
+                                                  False, head="emo")
+                    e_top = top_k_contributors(e_tokens, e_scores, k=3)
+                    st.markdown(f"### {EMOTION_EMOJIS[e_label]} Emotion: {e_label}")
+                    st.write(rationale_sentence(e_label, e_top))
+                    if e_top:
+                        st.markdown(create_explanation_chips(e_top), unsafe_allow_html=True)
+                        with st.expander("🔄 Counterfactual Analysis", expanded=False):
+                            cf_text2 = drop_word_once(txt, e_top[0][0])
+                            _, _, _, _, cf_e_label, cf_e_conf, _, _ = predict_mtl(mtl_mdl, mtl_tok, cf_text2)
+                            st.info(f"If we remove **'{e_top[0][0]}'**: {EMOTION_EMOJIS.get(cf_e_label,'🤔')} {cf_e_label} ({cf_e_conf:.1%} confidence)")
+
+                    with st.expander("🎨 Advanced Token Visualization", expanded=False):
+                        st.markdown("**Sentiment Token Importance**")
+                        st.markdown(enhanced_html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
+                        st.markdown("**Emotion Token Importance**")
+                        st.markdown(enhanced_html_highlight(e_tokens, e_scores), unsafe_allow_html=True)
+
+                        st.markdown("**Detailed Probability Distributions**")
+                        cc1, cc2 = st.columns(2)
+                        with cc1:
+                            st.bar_chart(format_probs(SENTIMENT_LABELS, s_probs))
+                        with cc2:
+                            st.bar_chart(format_probs(EMOTION_LABELS, e_probs))
 
     elif analyze_button:
         st.warning("⚠️ Please enter some text to analyze!")
 
-# ---------- Enhanced Batch Tab ----------
-with tab2:
-    st.markdown("## 📊 Batch Analysis")
-    st.markdown("Upload a CSV file to analyze multiple texts at once")
-    
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        uploaded_file = st.file_uploader(
-            "Choose a CSV file",
-            type=['csv'],
-            help="CSV must contain a 'text' column with the texts to analyze"
-        )
-    
-    with col2:
-        st.markdown("### 📋 Requirements")
-        st.markdown("- CSV format")
-        st.markdown("- 'text' column required")
-        st.markdown("- Max 1000 rows")
-    
-    if uploaded_file is not None:
-        try:
-            df = pd.read_csv(uploaded_file)
-            if "text" not in df.columns:
-                st.error("❌ CSV must contain a 'text' column")
-            else:
-                st.success(f"✅ Loaded {len(df)} texts successfully")
-                st.dataframe(df.head(), use_container_width=True)
-                
-                if st.button("🚀 Analyze All Texts", type="primary"):
-                    st.info("🚧 Batch analysis feature coming soon!")
-                    # Implement batch processing here
-                    
-        except Exception as e:
-            st.error(f"❌ Error reading CSV: {str(e)}")
-
 # ---------- About Tab ----------
-with tab3:
+with tab2:
     st.markdown("## ℹ️ About This Application")
     
     col1, col2 = st.columns(2)
@@ -1197,8 +1257,6 @@ with tab3:
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Model Accuracy", "~85%", "±2%")
-    with col2:
-        st.metric("Processing Speed", "<1s", "per text")
-    with col3:
         st.metric("Supported Tokens", "512", "max length")
+    with col2:
+        st.metric("Processing Speed", "<10s", "per text")

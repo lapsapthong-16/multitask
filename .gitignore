@@ -1,6 +1,6 @@
 # Virtual environment
 env/
-.venv/
+venv/
 # Python compiled files
 __pycache__/
 *.py[cod]
