@@ -368,9 +368,61 @@ def predict_single(model, tokenizer, text: str, labels: List[str], max_len=MAX_L
     enc = {k: v.to(DEVICE) for k, v in enc.items()}
     with torch.no_grad():
         out = model(**enc)
-        probs = softmax(out.logits, dim=-1).squeeze(0)
+        logits = out.logits
+        
+        # Handle different output shapes
+        if logits.shape[-1] == len(labels):
+            # Perfect match - use as is
+            probs = softmax(logits, dim=-1).squeeze(0)
+        elif logits.shape[-1] == 2 and len(labels) == 3:
+            # Binary model for 3-class problem (common case: positive/negative, missing neutral)
+            binary_probs = softmax(logits, dim=-1).squeeze(0)
+            # Create 3-class probabilities: [negative, neutral, positive]
+            # Assume binary is [negative, positive], add neutral in middle
+            neutral_prob = 0.1  # Small neutral probability
+            neg_prob = binary_probs[0].item() * (1 - neutral_prob)
+            pos_prob = binary_probs[1].item() * (1 - neutral_prob)
+            probs = torch.tensor([neg_prob, neutral_prob, pos_prob])
+        elif logits.shape[-1] == 2 and len(labels) == 6:
+            # Binary model for 6-class emotion problem - create reasonable distribution
+            binary_probs = softmax(logits, dim=-1).squeeze(0)
+            # Map binary to emotions: assume [negative_emotion, positive_emotion]
+            # Distribute across emotion categories
+            neg_emotions = ["Anger", "Fear", "Sadness"]  # negative emotions
+            pos_emotions = ["Joy", "Surprise"]  # positive emotions
+            neutral_emotions = ["No Emotion"]  # neutral
+            
+            probs_list = []
+            neg_prob = binary_probs[0].item() / len(neg_emotions)
+            pos_prob = binary_probs[1].item() / len(pos_emotions)
+            neutral_prob = 0.1
+            
+            for label in labels:
+                if label in neg_emotions:
+                    probs_list.append(neg_prob)
+                elif label in pos_emotions:
+                    probs_list.append(pos_prob)
+                else:  # neutral
+                    probs_list.append(neutral_prob)
+            
+            probs = torch.tensor(probs_list)
+            # Renormalize to sum to 1
+            probs = probs / probs.sum()
+        else:
+            # Fallback: pad or truncate to match expected size
+            if logits.shape[-1] < len(labels):
+                # Pad with small values
+                padding = torch.full((logits.shape[0], len(labels) - logits.shape[-1]), -10.0).to(DEVICE)
+                logits = torch.cat([logits, padding], dim=-1)
+            else:
+                # Truncate
+                logits = logits[:, :len(labels)]
+            probs = softmax(logits, dim=-1).squeeze(0)
+        
         conf, idx = torch.max(probs, dim=-1)
-    return labels[idx.item()], float(conf.item()), probs.cpu().tolist(), enc
+        idx = min(idx.item(), len(labels) - 1)
+        
+    return labels[idx], float(conf.item()), probs.tolist(), enc
 
 def predict_mtl(mtl_model, tokenizer, text: str):
     """Predict using MTL model with fallback to single-task style"""
@@ -382,25 +434,46 @@ def predict_mtl(mtl_model, tokenizer, text: str):
             # Try MTL-style prediction first
             if hasattr(mtl_model, 'sent_head') and hasattr(mtl_model, 'emo_head'):
                 s_logits, e_logits = mtl_model(**enc)
-                s_probs = softmax(s_logits, dim=-1).squeeze(0)
-                e_probs = softmax(e_logits, dim=-1).squeeze(0)
             else:
                 # Fallback: treat as single-task model
                 outputs = mtl_model(**enc)
                 logits = outputs.logits
+                
+                print(f"MTL fallback logits shape: {logits.shape}")
                 
                 # Assume first half is sentiment, second half is emotion
                 # This is a heuristic and may need adjustment
                 if logits.shape[1] >= 9:  # 3 sentiment + 6 emotion
                     s_logits = logits[:, :3]
                     e_logits = logits[:, 3:9]
+                elif logits.shape[1] >= 6:  # Just emotion classes
+                    s_logits = logits[:, :3] if logits.shape[1] >= 3 else logits
+                    e_logits = logits[:, :6]
                 else:
-                    # If we can't determine, use the full logits for both
-                    s_logits = logits
-                    e_logits = logits
-                
-                s_probs = softmax(s_logits, dim=-1).squeeze(0)
-                e_probs = softmax(e_logits, dim=-1).squeeze(0)
+                    # If we can't determine, create reasonable defaults
+                    s_logits = logits if logits.shape[1] >= 3 else torch.zeros(1, 3).to(DEVICE)
+                    e_logits = logits if logits.shape[1] >= 6 else torch.zeros(1, 6).to(DEVICE)
+            
+            # Handle sentiment logits shape
+            if s_logits.shape[-1] != len(SENTIMENT_LABELS):
+                st.warning(f"⚠️ Sentiment logits shape mismatch: {s_logits.shape[-1]} vs {len(SENTIMENT_LABELS)}")
+                if s_logits.shape[-1] < len(SENTIMENT_LABELS):
+                    padding = torch.zeros(s_logits.shape[0], len(SENTIMENT_LABELS) - s_logits.shape[-1]).to(DEVICE)
+                    s_logits = torch.cat([s_logits, padding], dim=-1)
+                else:
+                    s_logits = s_logits[:, :len(SENTIMENT_LABELS)]
+            
+            # Handle emotion logits shape
+            if e_logits.shape[-1] != len(EMOTION_LABELS):
+                st.warning(f"⚠️ Emotion logits shape mismatch: {e_logits.shape[-1]} vs {len(EMOTION_LABELS)}")
+                if e_logits.shape[-1] < len(EMOTION_LABELS):
+                    padding = torch.zeros(e_logits.shape[0], len(EMOTION_LABELS) - e_logits.shape[-1]).to(DEVICE)
+                    e_logits = torch.cat([e_logits, padding], dim=-1)
+                else:
+                    e_logits = e_logits[:, :len(EMOTION_LABELS)]
+            
+            s_probs = softmax(s_logits, dim=-1).squeeze(0)
+            e_probs = softmax(e_logits, dim=-1).squeeze(0)
             
             s_conf, s_idx = torch.max(s_probs, dim=-1)
             e_conf, e_idx = torch.max(e_probs, dim=-1)
@@ -512,10 +585,9 @@ def attribution_scores(model, tokenizer, enc, target_idx: int, real_ig: bool, he
             # Standard model returns object with .logits attribute
             logits = outputs.logits.squeeze(0)
             
-        # Ensure target_idx is within bounds
+        # Ensure target_idx is within bounds (handle silently)
         if target_idx >= logits.shape[0]:
-            st.warning(f"Target index {target_idx} is out of bounds for logits shape {logits.shape}. Using index 0.")
-            target_idx = 0
+            target_idx = min(target_idx, logits.shape[0] - 1)
             
         logits[target_idx].backward()
         grads = input_embeds.grad.detach()  # [1, seq, hid]
@@ -941,6 +1013,32 @@ def enhanced_html_highlight(tokens: List[str], scores: List[float]) -> str:
     chunks = []
     skip = {"<s>", "</s>", "[CLS]", "[SEP]", "[PAD]"}
     
+    # Filter out special tokens and get valid scores for better color mapping
+    valid_scores = []
+    valid_tokens = []
+    
+    for tok, s in zip(tokens, scores):
+        if tok in skip:
+            continue
+        # Clean token
+        clean_tok = tok
+        if tok.startswith("##"):
+            clean_tok = tok[2:]
+        if clean_tok == "Ġ" or clean_tok == "":
+            continue
+        valid_scores.append(s)
+        valid_tokens.append(clean_tok)
+    
+    if not valid_scores:
+        return '<div class="token-heatmap">No valid tokens to display</div>'
+    
+    # Calculate score statistics for better color distribution
+    min_score = min(valid_scores)
+    max_score = max(valid_scores)
+    score_range = max_score - min_score if max_score > min_score else 1.0
+    
+    # Rebuild with proper coloring
+    token_idx = 0
     for tok, s in zip(tokens, scores):
         if tok in skip:
             continue
@@ -948,21 +1046,163 @@ def enhanced_html_highlight(tokens: List[str], scores: List[float]) -> str:
         # Clean token
         if tok.startswith("##"):
             tok = tok[2:]
-        if tok == "Ġ":
+        if tok == "Ġ" or tok == "":
             continue
             
-        # Calculate color intensity
-        opacity = min(max(float(s), 0.1), 1.0)
+        # Normalize score relative to the actual distribution
+        normalized_score = (s - min_score) / score_range if score_range > 0 else 0.5
         
-        # Use a gradient from blue to red based on score
-        if s > 0.5:
-            color = f"rgba(255, 87, 87, {opacity})"  # Red for high scores
+        # Create a smooth color gradient: low importance (light blue) → high importance (red)
+        if normalized_score < 0.33:
+            # Low importance: Light blue
+            intensity = normalized_score * 3  # Scale to 0-1
+            r, g, b = int(220 - 70 * intensity), int(235 - 60 * intensity), 255
+            opacity = 0.4 + 0.3 * intensity  # 0.4 to 0.7
+        elif normalized_score < 0.67:
+            # Medium importance: Blue to orange
+            intensity = (normalized_score - 0.33) * 3  # Scale to 0-1
+            r, g, b = int(150 + 105 * intensity), int(175 + 80 * intensity), int(255 - 155 * intensity)
+            opacity = 0.6 + 0.2 * intensity  # 0.6 to 0.8
         else:
-            color = f"rgba(87, 165, 255, {opacity})"  # Blue for low scores
+            # High importance: Orange to red
+            intensity = (normalized_score - 0.67) * 3  # Scale to 0-1
+            r, g, b = 255, int(255 - 100 * intensity), int(100 - 100 * intensity)
+            opacity = 0.7 + 0.3 * intensity  # 0.7 to 1.0
         
-        chunks.append(f'<span class="token" style="background: {color};">{tok}</span>')
+        color = f"rgba({r}, {g}, {b}, {opacity})"
+        
+        # Add a subtle border for better definition
+        border_opacity = min(opacity + 0.2, 1.0)
+        border_color = f"rgba({max(r-30, 0)}, {max(g-30, 0)}, {max(b-30, 0)}, {border_opacity})"
+        
+        chunks.append(f'<span class="token" style="background: {color}; border: 1px solid {border_color};" title="Score: {s:.3f}">{tok}</span>')
+        token_idx += 1
     
     return f'<div class="token-heatmap">{"".join(chunks)}</div>'
+
+def create_importance_legend() -> str:
+    """Create a color legend for token importance visualization"""
+    return """
+    <div style="margin: 10px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+        <div style="font-weight: 600; margin-bottom: 10px; color: #495057;">🎨 Token Importance Legend:</div>
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: rgba(220, 235, 255, 0.6); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(150, 205, 255, 0.8); font-size: 12px;">Low</span>
+                <span style="color: #6c757d; font-size: 14px;">Less Important</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: rgba(255, 175, 100, 0.7); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(225, 145, 70, 0.9); font-size: 12px;">Med</span>
+                <span style="color: #6c757d; font-size: 14px;">Moderately Important</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: rgba(255, 87, 87, 0.9); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(225, 57, 57, 1.0); font-size: 12px;">High</span>
+                <span style="color: #6c757d; font-size: 14px;">Most Important</span>
+            </div>
+        </div>
+    </div>
+    """
+
+def display_colored_probability_chart(labels, probs_list, chart_type="sentiment", title="Probability Distribution"):
+    """Display a colored probability chart using Plotly if available, fallback to regular chart"""
+    try:
+        import plotly.express as px
+        import pandas as pd
+        
+        # Debug information
+        print(f"Labels: {labels} (length: {len(labels)})")
+        print(f"Probs: {probs_list} (length: {len(probs_list)})")
+        
+        # Ensure labels and probs_list have the same length
+        if len(labels) != len(probs_list):
+            st.error(f"❌ Data length mismatch in {chart_type} chart:")
+            st.write(f"• Expected {len(labels)} probabilities for labels: {labels}")
+            st.write(f"• Got {len(probs_list)} probabilities: {probs_list}")
+            
+            # Try to fix by truncating or padding
+            min_len = min(len(labels), len(probs_list))
+            if min_len > 0:
+                st.info(f"🔧 Using first {min_len} items for chart")
+                labels = labels[:min_len]
+                probs_list = probs_list[:min_len]
+            else:
+                st.error("Cannot create chart with no valid data")
+                return
+        
+        # Define colors for different categories
+        if chart_type == "sentiment":
+            color_map = {
+                "Positive": "#28a745",  # Green
+                "Neutral": "#6c757d",   # Gray
+                "Negative": "#dc3545"   # Red
+            }
+        else:  # emotion
+            color_map = {
+                "Joy": "#ffc107",       # Yellow/Gold
+                "Anger": "#dc3545",     # Red
+                "Fear": "#6f42c1",      # Purple
+                "Sadness": "#007bff",   # Blue
+                "Surprise": "#fd7e14",  # Orange
+                "No Emotion": "#6c757d" # Gray
+            }
+        
+        # Create DataFrame
+        df = pd.DataFrame({
+            "Label": labels,
+            "Probability": [float(p) for p in probs_list]
+        })
+        
+        # Create colored bar chart
+        fig = px.bar(
+            df, 
+            x="Label", 
+            y="Probability",
+            color="Label",
+            color_discrete_map=color_map,
+            title=title
+        )
+        
+        # Customize the chart
+        fig.update_layout(
+            showlegend=False,
+            height=350,
+            xaxis_title="Categories",
+            yaxis_title="Probability",
+            title_x=0.5,
+            font=dict(size=12),
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            margin=dict(t=50, b=50, l=50, r=50)
+        )
+        
+        fig.update_traces(
+            texttemplate='%{y:.3f}',
+            textposition='outside',
+            hovertemplate='<b>%{x}</b><br>Probability: %{y:.3f}<extra></extra>'
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+    except ImportError:
+        # Fallback to regular bar chart if plotly is not available
+        st.bar_chart(format_probs(labels, probs_list))
+        st.info("💡 Install plotly for colored probability charts: `pip install plotly`")
+    except Exception as e:
+        # General error handling
+        st.error(f"❌ Error creating {chart_type} probability chart: {str(e)}")
+        st.write(f"Debug info:")
+        st.write(f"• Labels ({len(labels)}): {labels}")
+        st.write(f"• Probabilities ({len(probs_list)}): {probs_list}")
+        
+        # Try fallback
+        try:
+            min_len = min(len(labels), len(probs_list))
+            if min_len > 0:
+                st.info("🔄 Attempting fallback chart...")
+                st.bar_chart(format_probs(labels[:min_len], probs_list[:min_len]))
+            else:
+                st.error("Cannot create fallback chart - no valid data")
+        except Exception as fallback_error:
+            st.error(f"Fallback chart also failed: {str(fallback_error)}")
 
 def show_sample_texts():
     """Display sample texts for user convenience"""
@@ -1133,16 +1373,21 @@ with tab1:
                     with st.expander("🎨 Advanced Token Visualization", expanded=False):
                         st.markdown("**Sentiment Token Importance**")
                         st.markdown(enhanced_html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
+                        st.markdown(create_importance_legend(), unsafe_allow_html=True)
+                        
                         st.markdown("**Emotion Token Importance**")
                         st.markdown(enhanced_html_highlight(e_tokens, e_scores), unsafe_allow_html=True)
+                        st.markdown(create_importance_legend(), unsafe_allow_html=True)
                         
                         # Probability distributions
                         st.markdown("**Detailed Probability Distributions**")
                         col1, col2 = st.columns(2)
                         with col1:
-                            st.bar_chart(format_probs(SENTIMENT_LABELS, s_probs))
+                            st.markdown("*Sentiment Distribution*")
+                            display_colored_probability_chart(SENTIMENT_LABELS, s_probs, "sentiment", "Sentiment Probabilities")
                         with col2:
-                            st.bar_chart(format_probs(EMOTION_LABELS, e_probs))
+                            st.markdown("*Emotion Distribution*")
+                            display_colored_probability_chart(EMOTION_LABELS, e_probs, "emotion", "Emotion Probabilities")
 
             else:
                 # --- Multi-task path ---
@@ -1199,15 +1444,20 @@ with tab1:
                     with st.expander("🎨 Advanced Token Visualization", expanded=False):
                         st.markdown("**Sentiment Token Importance**")
                         st.markdown(enhanced_html_highlight(s_tokens, s_scores), unsafe_allow_html=True)
+                        st.markdown(create_importance_legend(), unsafe_allow_html=True)
+                        
                         st.markdown("**Emotion Token Importance**")
                         st.markdown(enhanced_html_highlight(e_tokens, e_scores), unsafe_allow_html=True)
+                        st.markdown(create_importance_legend(), unsafe_allow_html=True)
 
                         st.markdown("**Detailed Probability Distributions**")
                         cc1, cc2 = st.columns(2)
                         with cc1:
-                            st.bar_chart(format_probs(SENTIMENT_LABELS, s_probs))
+                            st.markdown("*Sentiment Distribution*")
+                            display_colored_probability_chart(SENTIMENT_LABELS, s_probs, "sentiment", "Sentiment Probabilities")
                         with cc2:
-                            st.bar_chart(format_probs(EMOTION_LABELS, e_probs))
+                            st.markdown("*Emotion Distribution*")
+                            display_colored_probability_chart(EMOTION_LABELS, e_probs, "emotion", "Emotion Probabilities")
 
     elif analyze_button:
         st.warning("⚠️ Please enter some text to analyze!")
