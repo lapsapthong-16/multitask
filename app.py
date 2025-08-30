@@ -11,7 +11,6 @@ from typing import List, Tuple, Dict
 from torch.nn.functional import softmax
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-# Enhanced page config
 st.set_page_config(
     page_title="🧠 AI Crisis Sentiment & Emotion Analyzer",
     page_icon="🧠",
@@ -19,7 +18,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for modern styling
 st.markdown("""
 <style>
     /* Import Google Fonts */
@@ -289,11 +287,9 @@ def load_mtl():
 SENTIMENT_BASE = "models/sentiment"     
 EMOTION_BASE   = "models/emotion"       
 
-# match the exact class order used during training
 SENTIMENT_LABELS = ["Negative", "Neutral", "Positive"]
 EMOTION_LABELS   = ["Anger", "Fear", "Joy", "Sadness", "Surprise", "No Emotion"]
 
-# Emoji mappings for better visual appeal
 SENTIMENT_EMOJIS = {"Negative": "😞", "Neutral": "😐", "Positive": "😊"}
 EMOTION_EMOJIS = {
     "Anger": "😡", "Fear": "😨", "Joy": "😄", 
@@ -309,7 +305,6 @@ try:
 except Exception:
     USE_CAPTUM = False
 
-# Sample texts for user convenience
 SAMPLE_TEXTS = [
     "My Note 7 overheated again. I'm scared it might explode.",
     "Samsung's response to the crisis was quick and professional.",
@@ -319,11 +314,9 @@ SAMPLE_TEXTS = [
     "The battery issue is concerning but I still love my Samsung phone.",
 ]
 
-# Check MTL availability
 mtl_available = False
 mtl_tok, mtl_mdl = None, None
 
-# Check if MTL models exist for the current backbone
 def check_mtl_availability(backbone):
     mtl_path = os.path.join(MTL_DIR, backbone)
     if not os.path.exists(mtl_path):
@@ -331,8 +324,6 @@ def check_mtl_availability(backbone):
     
     model_files = [f for f in os.listdir(mtl_path) if f.endswith('.pt') or f.endswith('.safetensors') or f.endswith('.bin')]
     return len(model_files) > 0
-
-
 
 def reload_mtl_for_backbone(backbone):
     global mtl_tok, mtl_mdl, mtl_available
@@ -360,9 +351,6 @@ def load_models(backbone="bertweet"):
 
     return sent_tok, sent_mdl, emo_tok, emo_mdl
 
-# =========================
-# INFERENCE HELPERS
-# =========================
 def predict_single(model, tokenizer, text: str, labels: List[str], max_len=MAX_LEN):
     enc = tokenizer(text, return_tensors="pt", truncation=True, max_length=max_len)
     enc = {k: v.to(DEVICE) for k, v in enc.items()}
@@ -370,21 +358,15 @@ def predict_single(model, tokenizer, text: str, labels: List[str], max_len=MAX_L
         out = model(**enc)
         logits = out.logits
         
-        # Handle different output shapes
         if logits.shape[-1] == len(labels):
-            # Perfect match - use as is
             probs = softmax(logits, dim=-1).squeeze(0)
         elif logits.shape[-1] == 2 and len(labels) == 3:
-            # Binary model for 3-class problem (common case: positive/negative, missing neutral)
             binary_probs = softmax(logits, dim=-1).squeeze(0)
-            # Create 3-class probabilities: [negative, neutral, positive]
-            # Assume binary is [negative, positive], add neutral in middle
-            neutral_prob = 0.1  # Small neutral probability
+            neutral_prob = 0.1  
             neg_prob = binary_probs[0].item() * (1 - neutral_prob)
             pos_prob = binary_probs[1].item() * (1 - neutral_prob)
             probs = torch.tensor([neg_prob, neutral_prob, pos_prob])
         elif logits.shape[-1] == 2 and len(labels) == 6:
-            # Binary model for 6-class emotion problem - create reasonable distribution
             binary_probs = softmax(logits, dim=-1).squeeze(0)
             # Map binary to emotions: assume [negative_emotion, positive_emotion]
             # Distribute across emotion categories
@@ -406,12 +388,9 @@ def predict_single(model, tokenizer, text: str, labels: List[str], max_len=MAX_L
                     probs_list.append(neutral_prob)
             
             probs = torch.tensor(probs_list)
-            # Renormalize to sum to 1
             probs = probs / probs.sum()
         else:
-            # Fallback: pad or truncate to match expected size
             if logits.shape[-1] < len(labels):
-                # Pad with small values
                 padding = torch.full((logits.shape[0], len(labels) - logits.shape[-1]), -10.0).to(DEVICE)
                 logits = torch.cat([logits, padding], dim=-1)
             else:
@@ -425,24 +404,19 @@ def predict_single(model, tokenizer, text: str, labels: List[str], max_len=MAX_L
     return labels[idx], float(conf.item()), probs.tolist(), enc
 
 def predict_mtl(mtl_model, tokenizer, text: str):
-    """Predict using MTL model with fallback to single-task style"""
     enc = tokenizer(text, return_tensors="pt", truncation=True, max_length=MAX_LEN)
     enc = {k: v.to(DEVICE) for k, v in enc.items()}
     
     with torch.no_grad():
         try:
-            # Try MTL-style prediction first
             if hasattr(mtl_model, 'sent_head') and hasattr(mtl_model, 'emo_head'):
                 s_logits, e_logits = mtl_model(**enc)
             else:
-                # Fallback: treat as single-task model
                 outputs = mtl_model(**enc)
                 logits = outputs.logits
                 
                 print(f"MTL fallback logits shape: {logits.shape}")
                 
-                # Assume first half is sentiment, second half is emotion
-                # This is a heuristic and may need adjustment
                 if logits.shape[1] >= 9:  # 3 sentiment + 6 emotion
                     s_logits = logits[:, :3]
                     e_logits = logits[:, 3:9]
@@ -450,7 +424,6 @@ def predict_mtl(mtl_model, tokenizer, text: str):
                     s_logits = logits[:, :3] if logits.shape[1] >= 3 else logits
                     e_logits = logits[:, :6]
                 else:
-                    # If we can't determine, create reasonable defaults
                     s_logits = logits if logits.shape[1] >= 3 else torch.zeros(1, 3).to(DEVICE)
                     e_logits = logits if logits.shape[1] >= 6 else torch.zeros(1, 6).to(DEVICE)
             
@@ -498,7 +471,6 @@ def format_probs(labels, probs_list) -> Dict[str, float]:
 
 
 def tokens_and_embeds(model, tokenizer, enc):
-    """Return tokens and an embedding function handle for Captum."""
     input_ids = enc["input_ids"]
     attention_mask = enc.get("attention_mask", None)
     tokens = tokenizer.convert_ids_to_tokens(input_ids[0].cpu().tolist())
@@ -511,14 +483,6 @@ def tokens_and_embeds(model, tokenizer, enc):
 
 
 def attribution_scores(model, tokenizer, enc, target_idx: int, real_ig: bool, head=None):
-    """
-    Return token-level attribution scores in [0,1].
-    If real_ig=True and Captum available, use Integrated Gradients.
-    Else use a one-pass saliency on input embeddings (norm of grad).
-    
-    Args:
-        head: For MTL models, specify 'sent' for sentiment or 'emo' for emotion
-    """
     input_ids = enc["input_ids"]
     attention_mask = enc.get("attention_mask", None)
     token_count = input_ids.shape[1]
@@ -546,8 +510,6 @@ def attribution_scores(model, tokenizer, enc, target_idx: int, real_ig: bool, he
             return [0.0] * token_count
 
     if real_ig and USE_CAPTUM:
-        # True Integrated Gradients - needs more complex handling for MTL
-        # For now, fall back to simple saliency for MTL models
         if hasattr(model, 'sent_head') and hasattr(model, 'emo_head'):
             real_ig = False
         else:
@@ -564,33 +526,27 @@ def attribution_scores(model, tokenizer, enc, target_idx: int, real_ig: bool, he
             scores = attributions.norm(p=2, dim=-1).squeeze(0).detach().cpu().numpy()
     
     if not real_ig or not USE_CAPTUM:
-        # Lightweight saliency: grad wrt input embeddings (one backward pass)
         for p in model.parameters():
             p.requires_grad_(False)
         input_embeds = embeddings_layer(input_ids).detach().clone().to(DEVICE).requires_grad_(True)
         outputs = model(inputs_embeds=input_embeds, attention_mask=attention_mask)
         
-        # Handle MTL models that return tuples vs standard models that return objects
         if hasattr(model, 'sent_head') and hasattr(model, 'emo_head'):
-            # MTL model returns (sent_logits, emo_logits)
             sent_logits, emo_logits = outputs
             if head == "sent":
                 logits = sent_logits.squeeze(0)
             elif head == "emo":
                 logits = emo_logits.squeeze(0)
             else:
-                # Default to sentiment if not specified
                 logits = sent_logits.squeeze(0)
         else:
-            # Standard model returns object with .logits attribute
             logits = outputs.logits.squeeze(0)
             
-        # Ensure target_idx is within bounds (handle silently)
         if target_idx >= logits.shape[0]:
             target_idx = min(target_idx, logits.shape[0] - 1)
             
         logits[target_idx].backward()
-        grads = input_embeds.grad.detach()  # [1, seq, hid]
+        grads = input_embeds.grad.detach()  
         scores = grads.norm(dim=-1).squeeze(0).cpu().numpy()
 
     # normalize to [0,1]
@@ -606,12 +562,11 @@ def html_highlight(tokens: List[str], scores: List[float]) -> str:
     for tok, s in zip(tokens, scores):
         if tok in skip:
             continue
-        # strip common wordpiece prefixes
         if tok.startswith("##"):
             tok = tok[2:]
         if tok == "Ġ":
             continue
-        opacity = min(max(float(s), 0.06), 1.0)  # clamp to [0.06, 1.0] so faint tokens are still visible
+        opacity = min(max(float(s), 0.06), 1.0)  
         chunks.append(
             f"<span style='background: rgba(255,165,0,{opacity}); padding:2px 4px; border-radius:4px; margin:2px'>{tok}</span>"
         )
@@ -627,16 +582,13 @@ def resolve_paths(mode: str, bk: str):
         return {"mode": "mtl", "mtl": mtl_path}
 
 def load_single_task(model_path):
-    """Load a single task model from the given path"""
     try:
-        # Check if this is a custom BERTweet model
         config_path = os.path.join(model_path, "config.json")
         is_custom_bertweet = False
         if os.path.exists(config_path):
             import json
             with open(config_path, 'r') as f:
                 config = json.load(f)
-                # Check if it's a custom BERTweet model that needs special handling
                 if config.get("model_name") == "vinai/bertweet-base" and "num_classes" in config:
                     is_custom_bertweet = True
         
@@ -644,18 +596,14 @@ def load_single_task(model_path):
         
         if is_custom_bertweet:
             # For custom BERTweet models, we need to load them differently
-            # First try standard loading
             try:
                 model = AutoModelForSequenceClassification.from_pretrained(model_path)
             except Exception:
-                # If standard loading fails, create a model from vinai/bertweet-base and load the state dict
                 from transformers import RobertaForSequenceClassification, RobertaConfig
                 
-                # Create config based on the saved config
                 with open(config_path, 'r') as f:
                     saved_config = json.load(f)
                 
-                # Create a proper RobertaConfig
                 model_config = RobertaConfig(
                     vocab_size=saved_config.get("vocab_size", 64002),
                     hidden_size=saved_config.get("hidden_size", 768),
@@ -686,18 +634,6 @@ def load_single_task(model_path):
         return None, None
 
 def load_mtl_dir(mtl_path):
-    """
-    Load an MTL (sentiment+emotion) model from `mtl_path`.
-
-    Supports:
-      A) single 9-label head (3+6) saved as a standard HF classifier
-      B) custom multi-head: encoder + sent_head + emo_head (state_dict)
-
-    Tokenizer fallback order:
-      1) tokenizer files in `mtl_path`
-      2) models/mtl/base_tok
-      3) HF base: distilroberta-base or vinai/bertweet-base
-    """
     try:
         if not os.path.exists(mtl_path):
             return None, None
@@ -747,16 +683,13 @@ def load_mtl_dir(mtl_path):
                 candidate_files.append(fpath)
 
         if candidate_files:
-            # Try to create SimpleMTL using the local model directory for the encoder
             try:
                 mdl = SimpleMTL(mtl_path, num_sent=3, num_emo=6)
             except Exception:
-                # Fall back to using HF base name if local loading fails
                 mdl = SimpleMTL(base_name, num_sent=3, num_emo=6)
                 
             for f in candidate_files:
                 try:
-                    # Try with weights_only=True first (safer)
                     try:
                         sd = torch.load(f, map_location=DEVICE, weights_only=True)
                     except Exception:
@@ -767,14 +700,11 @@ def load_mtl_dir(mtl_path):
                     mdl.eval().to(DEVICE)
                     return tok, mdl
                 except Exception as e:
-                    # Skip files that can't be loaded (e.g., custom classes not available)
                     continue
 
-        # --- last resort: try HF classifier anyway ---
         if has_pt_bin or has_safetensors:
             try:
                 # For MTL models, we need 9 labels (3 sentiment + 6 emotion)
-                # First try loading with the existing config
                 mdl = AutoModelForSequenceClassification.from_pretrained(mtl_path)
                 
                 # If the model doesn't have 9 labels, create one with the right number
@@ -803,23 +733,17 @@ def load_mtl_dir(mtl_path):
 sentiment_tok, sentiment_mdl, emotion_tok, emotion_mdl = load_models("bertweet")
 
 def ensure_mtl(backbone: str):
-    """Load MTL for the selected backbone (e.g., bertweet, distilroberta)."""
     tok, mdl = load_mtl_dir(os.path.join(MTL_DIR, backbone))
     ok = tok is not None and mdl is not None
     return ok, tok, mdl
 
-# Initialize with default backbone
 sentiment_tok, sentiment_mdl, emotion_tok, emotion_mdl = load_models("bertweet")
 
-# NEW: also try MTL for the initial backbone
 mtl_available, mtl_tok, mtl_mdl = ensure_mtl("bertweet")
 
-# Check if models loaded successfully
 if sentiment_tok is None or sentiment_mdl is None or emotion_tok is None or emotion_mdl is None:
     st.error("Failed to load initial models. Please check the model paths and try again.")
     st.stop()
-
-# --- Cleaner stakeholder helpers (drop-in replacement) ---
 
 STOPWORDS = {
     "the","a","an","to","of","and","or","but","if","in","on","at","for","with","as","by",
@@ -829,14 +753,6 @@ STOPWORDS = {
 }
 
 def _aggregate_word_scores(tokens, scores):
-    """
-    Merge subword tokens into whole words and aggregate scores (max).
-    Handles:
-      - RoBERTa/BERTweet: 'Ġword' (Ġ = leading space -> new word)
-      - BERT WordPiece:   '##piece' (continuation)
-      - BPE suffix:       'wor@@' + 'd' (continuation if endswith @@)
-      - Plain tokens:     start a NEW word (unless continuing an open BPE/WordPiece)
-    """
     words, word_scores = [], []
     cur_word, cur_scores = "", []
     wp_open = False   # WordPiece continuation (##)
@@ -911,10 +827,7 @@ def _aggregate_word_scores(tokens, scores):
 
 
 def top_k_contributors(tokens, scores, k=3, min_score=0.07, content_only=True):
-    """
-    Returns top-k (word, score) after aggregation.
-    Filters stopwords (unless extremely salient) and very tiny tokens.
-    """
+
     agg = _aggregate_word_scores(tokens, scores)
     out = []
     for w, sc in agg:
@@ -952,30 +865,17 @@ def drop_word_once(text, word):
     return re.sub(rf'\b{re.escape(word)}\b', '', text, count=1, flags=re.IGNORECASE).replace("  ", " ").strip()
 
 def counterfactual_delta(predict_fn, tokenizer, model, text, label_list, chosen_label):
-    """
-    Re-run prediction after removing the top contributing word and report delta in confidence.
-    predict_fn must match: (model, tokenizer, text, labels) -> (label, conf, probs, enc)
-    """
     base_label, base_conf, _, _ = predict_fn(model, tokenizer, text, label_list)
-    # If top word not supplied here, caller should compute and pass it in; we do a quick recompute instead
-    # Caller supplies tokens/scores for chosen_label
     return base_label, base_conf
 
-# =========================
-# ENHANCED UI FUNCTIONS
-# =========================
-
 def create_result_card(label, confidence, probs, label_type="sentiment"):
-    """Create a modern result card with enhanced styling"""
     emoji = SENTIMENT_EMOJIS.get(label, "🤔") if label_type == "sentiment" else EMOTION_EMOJIS.get(label, "🤔")
     
-    # Determine card class based on label
     if label_type == "sentiment":
         card_class = f"sentiment-{label.lower()}"
     else:
         card_class = f"emotion-{label.lower().replace(' ', '-')}"
     
-    # Create confidence bar
     conf_percentage = confidence * 100
     conf_color = "#28a745" if confidence > 0.7 else "#ffc107" if confidence > 0.4 else "#dc3545"
     
@@ -1009,7 +909,6 @@ def create_explanation_chips(top_words):
     return "".join(parts)
 
 def enhanced_html_highlight(tokens: List[str], scores: List[float]) -> str:
-    """Enhanced token highlighting with better styling"""
     chunks = []
     skip = {"<s>", "</s>", "[CLS]", "[SEP]", "[PAD]"}
     
@@ -1081,7 +980,6 @@ def enhanced_html_highlight(tokens: List[str], scores: List[float]) -> str:
     return f'<div class="token-heatmap">{"".join(chunks)}</div>'
 
 def create_importance_legend() -> str:
-    """Create a color legend for token importance visualization"""
     return """
     <div style="margin: 10px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
         <div style="font-weight: 600; margin-bottom: 10px; color: #495057;">🎨 Token Importance Legend:</div>
@@ -1103,7 +1001,6 @@ def create_importance_legend() -> str:
     """
 
 def display_colored_probability_chart(labels, probs_list, chart_type="sentiment", title="Probability Distribution"):
-    """Display a colored probability chart using Plotly if available, fallback to regular chart"""
     try:
         import plotly.express as px
         import pandas as pd
@@ -1205,7 +1102,6 @@ def display_colored_probability_chart(labels, probs_list, chart_type="sentiment"
             st.error(f"Fallback chart also failed: {str(fallback_error)}")
 
 def show_sample_texts():
-    """Display sample texts for user convenience"""
     st.markdown("### 💡 Try these sample texts:")
     
     cols = st.columns(2)
@@ -1213,10 +1109,6 @@ def show_sample_texts():
         with cols[i % 2]:
             if st.button(f"📝 {sample[:50]}...", key=f"sample_{i}", help=sample):
                 st.session_state.sample_text = sample
-
-# =========================
-# ENHANCED UI
-# =========================
 
 # Header
 st.markdown("""
@@ -1228,11 +1120,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Enhanced Sidebar
 with st.sidebar:
     st.markdown("## ⚙️ Configuration")
     
-    # Model settings with better descriptions
     st.markdown("### 🤖 Model Settings")
     mode_choice = st.radio(
         "Analysis Mode:",
@@ -1253,7 +1143,6 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # Model status indicator
     st.markdown("### 📊 Model Status")
     if sentiment_tok and sentiment_mdl:
         st.success("✅ Models loaded successfully")
@@ -1281,18 +1170,13 @@ if st.session_state.current_backbone != bk:
 
 choice = resolve_paths(mode_choice, bk)
 
-# Enhanced tabs
 tab1, tab2 = st.tabs(["🔍 Single Analysis", "ℹ️ About"])
 
-# ---------- Enhanced Single Text Tab ----------
 with tab1:
-    # Sample texts section
     show_sample_texts()
     
-    # Text input with better styling
     st.markdown("### 📝 Enter your text:")
     
-    # Use session state for sample text
     if 'sample_text' not in st.session_state:
         st.session_state.sample_text = "My Note 7 overheated again. I'm scared it might explode."
     
