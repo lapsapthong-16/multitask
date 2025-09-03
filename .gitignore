@@ -14,6 +14,7 @@ __pycache__/
 # VSCode settings
 .vscode/
 models/
+.venv/
 
 #models
 LLLL/
